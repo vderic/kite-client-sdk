@@ -1,7 +1,7 @@
 TOPDIR = ..
 XRGTAR = xrg-r220920.zip
 XRGDIR = $(XRGTAR:.zip=)
-SOCKSTREAMTAR = sockstream-r220819.zip
+SOCKSTREAMTAR = sockstream-r221024.zip
 SOCKSTREAMDIR = $(SOCKSTREAMTAR:.zip=)
 LIBEVENTTAR = libevent-2.1.12-stable.tar.gz
 LIBEVENTDIR = $(LIBEVENTTAR:.tar.gz=)
