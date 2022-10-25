@@ -1,6 +1,7 @@
 #ifndef _KITESDK_H_
 #define _KITESDK_H_
 
+#include <stdbool.h>
 #include "xrg.h"
 
 typedef struct kite_client_t kite_client_t;

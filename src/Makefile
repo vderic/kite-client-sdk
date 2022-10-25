@@ -15,7 +15,7 @@ endif
 CFLAGS += -std=c99
 CXXFLAGS += $(filter-out -std=c99, $(CFLAGS))  -std=c++17 -static-libstdc++
 LDFLAGS = -L../ext/lib -Wl,-rpath='$$ORIGIN'/../ext/lib
-LDLIBS = -llibevent -lxrg -lcrypto -lz -llz4 -lpthread -ldl
+LDLIBS = -levent -lsproto -lxrg -lcrypto -lz -llz4 -lpthread -ldl
 
 CFILES = kite_client.c kitesdk.c
 CXXFILES = 
@@ -23,28 +23,11 @@ CXXFILES =
 OBJS = $(CXXFILES:.cpp=.o) $(CFILES:.c=.o)
 EXECS = 
 
-all: $(OBJS) $(EXECS) 
+all: $(OBJS) $(EXECS) xcli
 
-xsanitize: xsanitize.cpp libexx.a sql_parser/libpg_query.a
-	$(CXX) $(CXXFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
+xcli: xcli.c  $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
 
-xevaluate: xevaluate.cpp libexx.a sql_parser/libpg_query.a
-	$(CXX) $(CXXFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
-
-xparse: xparse.cpp libexx.a sql_parser/libpg_query.a
-	$(CXX) $(CXXFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
-
-xplan: xplan.cpp libexx.a sql_parser/libpg_query.a
-	$(CXX) $(CXXFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
-
-xbench: xbench.cpp libexx.a sql_parser/libpg_query.a
-	$(CXX) $(CXXFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
-
-xrun: xrun.cpp libexx.a sql_parser/libpg_query.a
-	$(CXX) $(CXXFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
-
-xcompact: xcompact.cpp compact.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
 
 libkiteclient.a: $(OBJS)
 	ar -rcs $@ $^
