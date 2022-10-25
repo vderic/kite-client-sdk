@@ -60,7 +60,7 @@ int main(int argc, const char *argv[]) {
 			fprintf(stderr, "eof nrow = %d\n", nrow);
 		} else {
 			// error handling
-			fprintf(stderr, "error nrow = %d\n", nrow);
+			fprintf(stderr, "error %d nrow = %d\n", e, nrow);
 		}
 	}
 

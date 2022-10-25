@@ -67,11 +67,17 @@ static void list_free(list_t *list) {
 }
 
 static listcell_t *list_pop(list_t *list) {
-	listcell_t* ret = list->head;
-	if (list->head) {
-		list->head = list->head->next;
+	if (list) {
+		listcell_t* ret = list->head;
+		if (list->head) {
+			list->head = list->head->next;
+			if (list->head == NULL) {
+				list->tail = NULL;
+			}
+		}
+		return ret;
 	}
-	return ret;
+	return NULL;
 }
 
 
@@ -147,7 +153,7 @@ static void kite_evcb(evutil_socket_t fd, short what, void *arg)
 		}
 
 		client->rlist = list_append(client->rlist, res);
-	}
+	} 
 }
 
 void kite_client_exec(kite_client_t *client, const char *json, bool auto_fragment) {
@@ -167,7 +173,8 @@ int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket) {
 
 	client->nevt = nsocket;
 	client->evcxt = (kite_evcxt_t *) malloc(sizeof(kite_evcxt_t) * nsocket);
-	if (client->evcxt) {
+	if (!client->evcxt) {
+		fprintf(stderr, "kite_client_assign_socket: out of memory\n");
 		return 1;
 	}
 
@@ -266,7 +273,7 @@ int kite_client_next_row(kite_client_t *client, xrg_attr_t **attrs, void ***valu
 		// some rows to read
 		iter = get_next_iter(client);
 		if (!iter) {
-			return -1;
+			return 1;
 		}
 
 		*attrs = iter->attr;
