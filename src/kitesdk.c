@@ -156,6 +156,27 @@ void kite_client_exec(kite_client_t *client, const char *json) {
 	// add fragid and fragcnt  to the json
 }
 
+int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket) {
+	struct event *ev;
+	struct timeval fivesec = {5,0};
+	evutil_socket_t fd = 0;
+
+	if (nsocket != client->nevt) {
+		fprintf(stderr, "number of socket not match with the max connection (%d != %d)\n", nsocket, client->nevt);
+		return 1;
+	}
+
+	for (int i = 0 ; i < client->nevt ; i++) {
+		client->evcxt[i].ss = sockstream_assign(sockfd[i]);
+		client->evcxt[i].arg = client;
+		ev = event_new(client->evbase, sockfd[i], EV_TIMEOUT|EV_READ|EV_PERSIST, kite_evcb, &client->evcxt[i]);
+		client->evcxt[i].ev = ev;
+		event_add(ev, &fivesec);
+	}
+	return 0;
+}
+
+
 int kite_client_connect(kite_client_t *client, char *host) {
 
 	struct event *ev;
