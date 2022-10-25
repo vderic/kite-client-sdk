@@ -3,11 +3,11 @@
 
 typedef struct kite_client_t kite_client_t;
 
-kite_client_t *kite_client_create(int nconnection);
+kite_client_t *kite_client_create();
 
 int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket);
 
-int kite_client_connect(kite_client_t *client, char *host);
+int kite_client_connect(kite_client_t *client, char *host, int nconnection);
 
 void kite_client_exec(kite_client_t *client, const char *json);
 

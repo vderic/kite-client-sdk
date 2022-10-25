@@ -93,12 +93,10 @@ struct kite_client_t {
 
 };
 
-kite_client_t *kite_client_create(int nconnection) {
+kite_client_t *kite_client_create() {
 	kite_client_t *client = (kite_client_t *) malloc(sizeof(kite_client_t));
 	memset(client, 0, sizeof(kite_client_t));
 	client->evbase = event_base_new();
-	client->evcxt = (kite_evcxt_t *) malloc(sizeof(kite_evcxt_t) * nconnection);
-	client->nevt = nconnection;
 	return client;
 }
 
@@ -164,8 +162,9 @@ int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket) {
 	struct event *ev;
 	struct timeval fivesec = {5,0};
 
-	if (nsocket != client->nevt) {
-		fprintf(stderr, "number of socket not match with the max connection (%d != %d)\n", nsocket, client->nevt);
+	client->nevt = nsocket;
+	client->evcxt = (kite_evcxt_t *) malloc(sizeof(kite_evcxt_t) * nsocket);
+	if (client->evcxt) {
 		return 1;
 	}
 
@@ -180,15 +179,15 @@ int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket) {
 }
 
 
-int kite_client_connect(kite_client_t *client, char *host) {
+int kite_client_connect(kite_client_t *client, char *host, int nconnection) {
 
-	int sockfd[client->nevt];
+	int sockfd[nconnection];
 
-	for (int i = 0 ; i < client->nevt ; i++) {
+	for (int i = 0 ; i < nconnection ; i++) {
 		sockfd[i] = -1;
 	}
 
-	for (int i = 0 ; i < client->nevt ; i++) {
+	for (int i = 0 ; i < nconnection ; i++) {
 		int fd = socket_connect(host);
 		if (fd < 0) {
 			goto bail;
@@ -197,12 +196,10 @@ int kite_client_connect(kite_client_t *client, char *host) {
 		sockfd[i] = fd;
 	}
 
-	kite_client_assign_socket(client, sockfd, client->nevt);
-
-	return 0;
+	return kite_client_assign_socket(client, sockfd, nconnection);
 
 bail:
-	for (int i = 0 ; i < client->nevt ; i++) {
+	for (int i = 0 ; i < nconnection ; i++) {
 		if (sockfd[i] >= 0) {
 			close(sockfd[i]);
 		}
