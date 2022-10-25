@@ -31,28 +31,24 @@ static char *read_file_fully(const char *fn) {
 	return string;
 }
 
-#define FRAGMENT "__FRAGMENT__"
-
 static char *replace_fragment(char *json, int fragid, int fragcnt) {
 	char *ret = 0;
 	char fragment[1024];
 	char *p = 0;
 
-	sprintf(fragment, "\"fragment\" : [%d, %d]", fragid, fragcnt);
+	sprintf(fragment, ",\"fragment\" : [%d, %d]", fragid, fragcnt);
 
-	char *p1 = strstr(json, FRAGMENT);
+	char *p1 = strrchr(json, '}');
 	if (! p1) return strdup(json);
 
 	ret = malloc(strlen(json) + strlen(fragment) + 1);
-	char *p2 = p1 + strlen(FRAGMENT);
 
 	p = ret;
 	strncpy(p, json, p1-json);
-
 	p += p1-json;
 	strcpy(p, fragment);
 	p += strlen(fragment);
-	strcpy(p, p2);
+	strcpy(p, p1);
 
 	return ret;
 }
