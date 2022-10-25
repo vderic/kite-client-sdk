@@ -1,7 +1,13 @@
 #ifndef _KITESDK_H_
 #define _KITESDK_H_
 
+#include "xrg.h"
+
 typedef struct kite_client_t kite_client_t;
+
+#ifdef __cplusplus
+extern "C"
+#endif
 
 /* create the kite_client */
 kite_client_t *kite_client_create();
@@ -20,5 +26,9 @@ int kite_client_next_row(kite_client_t *client, xrg_attr_t **attrs, void ***valu
 
 /* destroy the client */
 void kite_client_destroy(kite_client_t *client);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
