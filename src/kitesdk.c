@@ -261,34 +261,37 @@ int kite_client_next_row(kite_client_t *client, xrg_attr_t **attrs, void ***valu
 		return 0;
 	}
 
-	e = event_base_loop(client->evbase, EVLOOP_ONCE);
+	do {
+		e = event_base_loop(client->evbase, EVLOOP_ONCE);
 
-	if (e == 0) {
-		// check e = ? when even_base_loopback called.  probably e = 0
-		if (event_base_got_break(client->evbase)) {
-			// break because of timed out
+		if (e == 0) {
+			// check e = ? when even_base_loopback called.  probably e = 0
+			if (event_base_got_break(client->evbase)) {
+				// break because of timed out
+				return -1;
+			}
+	
+			// some rows to read
+			iter = get_next_iter(client);
+			if (!iter) {
+				continue;
+			}
+	
+			*attrs = iter->attr;
+			*values = iter->value;
+			*flags = iter->flag;
+			*ncol = iter->nvec;
+			return 0;
+		} else if (e == 1) {
+			// no more pending events
+			return 1;
+		} else {
+			// unhandled error
+			fprintf(stderr, "kite_client_next_row: unhandled error\n");
 			return -1;
 		}
-
-		// some rows to read
-		iter = get_next_iter(client);
-		if (!iter) {
-			return 1;
-		}
-
-		*attrs = iter->attr;
-		*values = iter->value;
-		*flags = iter->flag;
-		*ncol = iter->nvec;
-		return 0;
-	} else if (e == 1) {
-		// no more pending events
-		return 1;
-	} else {
-		// unhandled error
-
-		return -1;
-	}
+	
+	} while (true);
 
 	return 0;
 }
