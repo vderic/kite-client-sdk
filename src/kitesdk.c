@@ -154,7 +154,10 @@ static void kite_evcb(evutil_socket_t fd, short what, void *arg)
 
 void kite_client_exec(kite_client_t *client, const char *json) {
 
-	// add fragid and fragcnt  to the json
+	for (int i = 0 ; i < client->nevt ; i++) {
+		// TODO: add fragid and fragcnt  to the json
+		kite_exec(client->evcxt[i].ss, json);
+	}
 }
 
 int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket) {

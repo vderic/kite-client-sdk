@@ -93,7 +93,7 @@ int socket_connect(char *host) {
 	return sockfd;
 }
 
-int kite_exec(sockstream_t *ss, char *json) {
+int kite_exec(sockstream_t *ss, const char *json) {
 
 	if (sockstream_send(ss, "KIT1", 0, 0)) {
 		fprintf(stderr, "%s", sockstream_errmsg(ss));
