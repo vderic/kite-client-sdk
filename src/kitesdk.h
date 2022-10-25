@@ -18,8 +18,8 @@ int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket);
 /* create the number of sockets (nconnection) to the same host */
 int kite_client_connect(kite_client_t *client, char *host, int nconnection);
 
-/* send the json to server. JSON contains SQL and schema ONLY and fragment info will be added inside the client */
-void kite_client_exec(kite_client_t *client, const char *json);
+/* send the json to server. if auto_fragment is true, fragment info will be added to JSON based on the number of connections */
+void kite_client_exec(kite_client_t *client, const char *json, bool auto_fragment);
 
 /* get the next row from socket */
 int kite_client_next_row(kite_client_t *client, xrg_attr_t **attrs, void ***values, char ***flags, int *ncol);
