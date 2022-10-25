@@ -156,14 +156,14 @@ static void kite_evcb(evutil_socket_t fd, short what, void *arg)
 	} 
 }
 
-void kite_client_exec(kite_client_t *client, const char *json, bool auto_fragment) {
+int kite_client_exec(kite_client_t *client, const char **json, int n) {
 
+	if (n != client->nevt) {
+		fprintf(stderr, "number of json requests do not match with number of connections\n");
+		return 1;
+	}
 	for (int i = 0 ; i < client->nevt ; i++) {
-		if (auto_fragment) {
-			// TODO: add fragid and fragcnt  to the json
-		}
-
-		kite_exec(client->evcxt[i].ss, json);
+		kite_exec(client->evcxt[i].ss, json[i]);
 	}
 }
 

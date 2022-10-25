@@ -9,13 +9,35 @@
 #include <string.h>
 #include "kitesdk.h"
 
+static char *read_file_fully(const char *fn) {
+
+	int n;
+	FILE *f = fopen(fn, "rb");
+	if (f == 0) {
+		return 0;
+	}
+	fseek(f, 0, SEEK_END);
+	long fsize = ftell(f);
+	fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+
+	char *string = malloc(fsize + 1);
+	if ((n = fread(string, fsize, 1, f)) < 0) {
+		return 0;
+	}
+
+	fclose(f);
+
+	string[fsize] = 0;
+	return string;
+}
+
 int main(int argc, const char *argv[]) {
 	char *host;
 	const char *jsonfn;
-	int e, n;
-	FILE *fp;
-	char json[2048];
+	int e;
+	const char *json = 0;
 	int nrow = 0;
+	int nconn = 1;
 
 	if (argc != 3) {
 		fprintf(stderr, "usage: xcli host:port jsonfn\n");
@@ -25,23 +47,15 @@ int main(int argc, const char *argv[]) {
 	host = strdup(argv[1]);
 	jsonfn = argv[2];
 
-	if ((fp = fopen(jsonfn, "r")) == NULL)  {
-		fprintf(stderr, "file read error");
-		return 2;
-	}
-
-	n = fread(json, 1, sizeof(json), fp);
-	fclose(fp);
+	json = read_file_fully(jsonfn);
 
 	fprintf(stderr, "json = *%s*", json);
 
-	json[n] = 0;
-
 	kite_client_t *cli = kite_client_create();
 
-	kite_client_connect(cli, host, 1);
+	kite_client_connect(cli, host, nconn);
 
-	kite_client_exec(cli, json, false);
+	kite_client_exec(cli, &json, nconn);
 
 	e = 0;
 	while (e == 0) {
