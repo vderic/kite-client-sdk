@@ -31,11 +31,38 @@ static char *read_file_fully(const char *fn) {
 	return string;
 }
 
+#define FRAGMENT "__FRAGMENT__"
+
+static char *replace_fragment(char *json, int fragid, int fragcnt) {
+	char *ret = 0;
+	char fragment[1024];
+	char *p = 0;
+
+	sprintf(fragment, "\"fragment\" : [%d, %d]", fragid, fragcnt);
+
+	char *p1 = strstr(json, FRAGMENT);
+	if (! p1) return strdup(json);
+
+	ret = malloc(strlen(json) + strlen(fragment) + 1);
+	char *p2 = p1 + strlen(FRAGMENT);
+
+	p = ret;
+	strncpy(p, json, p1-json);
+
+	p += p1-json;
+	strcpy(p, fragment);
+	p += strlen(fragment);
+	strcpy(p, p2);
+
+	return ret;
+}
+
+
 int main(int argc, const char *argv[]) {
 	char *host;
 	const char *jsonfn;
 	int e;
-	const char *json = 0;
+	char *json = 0, *newjson;
 	int nrow = 0;
 	int nconn = 1;
 
@@ -49,13 +76,19 @@ int main(int argc, const char *argv[]) {
 
 	json = read_file_fully(jsonfn);
 
-	fprintf(stderr, "json = *%s*", json);
+	if (! json) {
+		fprintf(stderr, "read file failed\n");
+		return 1;
+	}
+
+	newjson = replace_fragment(json, 0, 1);
+	fprintf(stderr, "json = *%s*", newjson);
 
 	kite_client_t *cli = kite_client_create();
 
 	kite_client_connect(cli, host, nconn);
 
-	kite_client_exec(cli, &json, nconn);
+	kite_client_exec(cli, (const char **) &newjson, nconn);
 
 	e = 0;
 	while (e == 0) {
@@ -78,6 +111,8 @@ int main(int argc, const char *argv[]) {
 		}
 	}
 
+	free(json);
+	free(newjson);
 	free(host);
 	kite_client_destroy(cli);
 
