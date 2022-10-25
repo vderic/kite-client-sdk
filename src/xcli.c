@@ -62,17 +62,19 @@ int main(int argc, const char *argv[]) {
 	char *host;
 	const char *jsonfn;
 	int e;
-	char *json = 0, *newjson;
+	char *json = 0;
+	char **jsarr = 0;
 	int nrow = 0;
-	int nconn = 1;
+	int nconn = 0;
 
-	if (argc != 3) {
-		fprintf(stderr, "usage: xcli host:port jsonfn\n");
+	if (argc != 4) {
+		fprintf(stderr, "usage: xcli host:port jsonfn #connection\n");
 		return 1;
 	}
 
 	host = strdup(argv[1]);
 	jsonfn = argv[2];
+	nconn = atoi(argv[3]);
 
 	json = read_file_fully(jsonfn);
 
@@ -81,14 +83,18 @@ int main(int argc, const char *argv[]) {
 		return 1;
 	}
 
-	newjson = replace_fragment(json, 0, 1);
-	fprintf(stderr, "json = *%s*", newjson);
+	jsarr = malloc(sizeof(char *) * nconn);
+
+	for (int i = 0 ; i < nconn ; i++) {
+		jsarr[i] = replace_fragment(json, i, nconn);
+		fprintf(stderr, "json[%d] = *%s*\n", i, jsarr[i]);
+	}
 
 	kite_client_t *cli = kite_client_create();
 
 	kite_client_connect(cli, host, nconn);
 
-	kite_client_exec(cli, (const char **) &newjson, nconn);
+	kite_client_exec(cli, (const char **)jsarr, nconn);
 
 	e = 0;
 	while (e == 0) {
@@ -112,7 +118,10 @@ int main(int argc, const char *argv[]) {
 	}
 
 	free(json);
-	free(newjson);
+	for (int i = 0 ; i < nconn ; i++) {
+		free(jsarr[i]);
+	}
+	free(jsarr);
 	free(host);
 	kite_client_destroy(cli);
 

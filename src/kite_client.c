@@ -58,8 +58,10 @@ int xrg_vector_fill_sockbuf(xrg_vector_t **c, sockbuf_t *sockbuf) {
 int socket_connect(char *host) {
 	struct addrinfo hints, *res;
 	int sockfd;
+	char newhost[strlen(host)+1];
+	strcpy(newhost, host);
 
-	char *port = strchr(host, ':');
+	char *port = strchr(newhost, ':');
 	if (port == NULL) {
 		fprintf(stderr, "kite: host should be in hostname:port format. %s", host);
 		return -1;
@@ -72,7 +74,7 @@ int socket_connect(char *host) {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if (0 != getaddrinfo(host, port, &hints, &res)) {
+	if (0 != getaddrinfo(newhost, port, &hints, &res)) {
 		fprintf(stderr, "kite: getaddrinfo error");
 		return -1;
 	}
