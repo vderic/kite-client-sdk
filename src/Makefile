@@ -1,3 +1,4 @@
+prefix ?= /usr/local
 CC ?= gcc
 CXX ?= g++
 CFLAGS += -I../ext/include -Wmissing-declarations -Wall -Wextra -mavx2 -mfma -mbmi2 -MMD
@@ -23,23 +24,25 @@ CXXFILES =
 OBJS = $(CXXFILES:.cpp=.o) $(CFILES:.c=.o)
 EXECS = 
 
-all: $(OBJS) $(EXECS) xcli
+all: $(OBJS) $(EXECS) xcli libkitesdk.a
 
 xcli: xcli.c  $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(filter-out %.hpp %.h, $^) $(LDFLAGS) $(LDLIBS)
 
 
-libkiteclient.a: $(OBJS)
+libkitesdk.a: $(OBJS)
 	ar -rcs $@ $^
-
-sql_parser/libpg_query.a:
-	make -C sql_parser
 
 -include $(OBJS:%.o=%.d) $(EXECS:%=%.d)
 
+install: all
+	install -d ${prefix} ${prefix}/include ${prefix}/lib
+	install -m 0644 -t ${prefix}/include kitesdk.h
+	install -m 0644 -t ${prefix}/lib libkitesdk.a
+
+
 clean:
 	rm -f *.a *.o *.d $(EXECS)
-#	make -C sql_parser clean
 
 format:
 	clang-format -i *.cpp *.hpp *.c *.h
