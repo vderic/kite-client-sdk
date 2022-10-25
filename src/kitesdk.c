@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdlib.h>
 #include <event2/event.h>
 #include "sockstream.h"
@@ -159,7 +160,6 @@ void kite_client_exec(kite_client_t *client, const char *json) {
 int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket) {
 	struct event *ev;
 	struct timeval fivesec = {5,0};
-	evutil_socket_t fd = 0;
 
 	if (nsocket != client->nevt) {
 		fprintf(stderr, "number of socket not match with the max connection (%d != %d)\n", nsocket, client->nevt);
@@ -179,19 +179,32 @@ int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket) {
 
 int kite_client_connect(kite_client_t *client, char *host) {
 
-	struct event *ev;
-	struct timeval fivesec = {5,0};
-	evutil_socket_t fd = 0;
+	int sockfd[client->nevt];
 
 	for (int i = 0 ; i < client->nevt ; i++) {
-		client->evcxt[i].ss = kite_connect(host);
-		fd = sockstream_getfd(client->evcxt[i].ss);
-		client->evcxt[i].arg = client;
-		ev = event_new(client->evbase, fd, EV_TIMEOUT|EV_READ|EV_PERSIST, kite_evcb, &client->evcxt[i]);
-		client->evcxt[i].ev = ev;
-		event_add(ev, &fivesec);
+		sockfd[i] = -1;
 	}
+
+	for (int i = 0 ; i < client->nevt ; i++) {
+		int fd = socket_connect(host);
+		if (fd < 0) {
+			goto bail;
+		}
+
+		sockfd[i] = fd;
+	}
+
+	kite_client_assign_socket(client, sockfd, client->nevt);
+
 	return 0;
+
+bail:
+	for (int i = 0 ; i < client->nevt ; i++) {
+		if (sockfd[i] >= 0) {
+			close(sockfd[i]);
+		}
+	}
+	return 1;
 }
 
 

@@ -55,15 +55,14 @@ int xrg_vector_fill_sockbuf(xrg_vector_t **c, sockbuf_t *sockbuf) {
 }
 
 /* kite client */
-sockstream_t* kite_connect(char *host) {
-	sockstream_t *ss;
+int socket_connect(char *host) {
 	struct addrinfo hints, *res;
-	int sockfd = 0;
+	int sockfd;
 
 	char *port = strchr(host, ':');
 	if (port == NULL) {
 		fprintf(stderr, "kite: host should be in hostname:port format. %s", host);
-		return 0;
+		return -1;
 	}
 
 	*port = 0;
@@ -75,33 +74,23 @@ sockstream_t* kite_connect(char *host) {
 
 	if (0 != getaddrinfo(host, port, &hints, &res)) {
 		fprintf(stderr, "kite: getaddrinfo error");
-		return 0;
+		return -1;
 	}
 
 	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	if (sockfd < 0) {
 		fprintf(stderr, "kite: cannot create socket");
-		return 0;
+		return -1;
 	}
 
 	if (-1 == connect(sockfd, res->ai_addr, res->ai_addrlen)) {
 		fprintf(stderr, "kite: cannot open kite connection");
-		return 0;
+		return -1;
 	}
 
 	freeaddrinfo(res);
 
-        ss = sockstream_assign(sockfd);
-        if (!ss) {
-                fprintf(stderr, "kite: out of memory");
-                return 0;
-        }
-
-	return ss;
-}
-
-void kite_destroy(sockstream_t *ss) {
-	sockstream_destroy(ss);
+	return sockfd;
 }
 
 int kite_exec(sockstream_t *ss, char *json) {
