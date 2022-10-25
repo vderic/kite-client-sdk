@@ -22,8 +22,6 @@ struct list_t {
 	listcell_t *tail;
 };
 
-static bool list_empty(list_t *list) { return (list->head == NULL); }
-
 static list_t *list_append(list_t *list, kite_result_t *arg) {
 
 	list_t *ret = 0;
@@ -140,6 +138,7 @@ void kite_client_destroy(kite_client_t *client) {
 
 static void kite_evcb(evutil_socket_t fd, short what, void *arg)
 {
+	(void) fd;
 	kite_evcxt_t *cxt = (kite_evcxt_t *) arg;
 	kite_client_t *client = (kite_client_t *) cxt->arg;
 	if (what & EV_TIMEOUT) {
@@ -165,6 +164,7 @@ int kite_client_exec(kite_client_t *client, const char **json, int n) {
 	for (int i = 0 ; i < client->nevt ; i++) {
 		kite_exec(client->evcxt[i].ss, json[i]);
 	}
+	return 0;
 }
 
 int kite_client_assign_socket(kite_client_t *client, int *sockfd, int nsocket) {

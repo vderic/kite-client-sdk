@@ -6,7 +6,7 @@ SOCKSTREAMDIR = $(SOCKSTREAMTAR:.zip=)
 LIBEVENTTAR = libevent-2.1.12-stable.tar.gz
 LIBEVENTDIR = $(LIBEVENTTAR:.tar.gz=)
 
-all: $(SUBDIR) include/xrg.h include/sockstream.h include/rapidjson include/event2/event.h
+all: $(SUBDIR) include/xrg.h include/sockstream.h include/event2/event.h
 
 $(SUBDIR):
 	mkdir $@
