@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define STRINGBUFFER_WORK_BUFFER_SIZE 21
+#define XSTRINGBUFFER_WORK_BUFFER_SIZE 21
 
-struct StringBuffer {
+struct XStringBuffer {
 	size_t initial_size;
 	size_t content_size;
 	size_t max_size;
@@ -17,22 +17,22 @@ struct StringBuffer {
 };
 
 // private functions definitions
-static bool _stringbuffer_clear(struct StringBuffer *);
-static bool _stringbuffer_set_capacity(struct StringBuffer *, const size_t);
-static bool _stringbuffer_add_numeric_type(struct StringBuffer *, const char *, ...);
+static bool _xstringbuffer_clear(struct XStringBuffer *);
+static bool _xstringbuffer_set_capacity(struct XStringBuffer *, const size_t);
+static bool _xstringbuffer_add_numeric_type(struct XStringBuffer *, const char *, ...);
 
-struct StringBuffer *stringbuffer_new() {
-	return (stringbuffer_new_with_options(STRINGBUFFER_INITIAL_BUFFER_SIZE, true));
+struct XStringBuffer *xstringbuffer_new() {
+	return (xstringbuffer_new_with_options(XSTRINGBUFFER_INITIAL_BUFFER_SIZE, true));
 }
 
-struct StringBuffer *stringbuffer_new_with_options(const size_t initial_size, const bool allow_resize) {
+struct XStringBuffer *xstringbuffer_new_with_options(const size_t initial_size, const bool allow_resize) {
 	size_t size = 1;
 
 	if (initial_size > 0) {
 		size = initial_size;
 	}
 
-	struct StringBuffer *buffer = malloc(sizeof(struct StringBuffer));
+	struct XStringBuffer *buffer = malloc(sizeof(struct XStringBuffer));
 
 	if (buffer == NULL) {
 		return (NULL);
@@ -40,11 +40,11 @@ struct StringBuffer *stringbuffer_new_with_options(const size_t initial_size, co
 
 	buffer->initial_size = size;
 	buffer->content_size = 0;
-	buffer->work_buffer = malloc(STRINGBUFFER_WORK_BUFFER_SIZE * sizeof(char));
+	buffer->work_buffer = malloc(XSTRINGBUFFER_WORK_BUFFER_SIZE * sizeof(char));
 
 	buffer->value = NULL;
-	if (!_stringbuffer_clear(buffer)) {
-		stringbuffer_release(buffer);
+	if (!_xstringbuffer_clear(buffer)) {
+		xstringbuffer_release(buffer);
 		return (NULL);
 	}
 
@@ -54,27 +54,27 @@ struct StringBuffer *stringbuffer_new_with_options(const size_t initial_size, co
 	return (buffer);
 }
 
-bool stringbuffer_is_empty(struct StringBuffer *buffer) {
+bool xstringbuffer_is_empty(struct XStringBuffer *buffer) {
 	return (buffer->content_size == 0);
 }
 
-size_t stringbuffer_get_initial_size(struct StringBuffer *buffer) {
+size_t xstringbuffer_get_initial_size(struct XStringBuffer *buffer) {
 	return (buffer->initial_size);
 }
 
-size_t stringbuffer_get_content_size(struct StringBuffer *buffer) {
+size_t xstringbuffer_get_content_size(struct XStringBuffer *buffer) {
 	return (buffer->content_size);
 }
 
-size_t stringbuffer_get_max_size(struct StringBuffer *buffer) {
+size_t xstringbuffer_get_max_size(struct XStringBuffer *buffer) {
 	return (buffer->max_size);
 }
 
-bool stringbuffer_is_allow_resize(struct StringBuffer *buffer) {
+bool xstringbuffer_is_allow_resize(struct XStringBuffer *buffer) {
 	return (buffer->allow_resize);
 }
 
-bool stringbuffer_clear(struct StringBuffer *buffer) {
+bool xstringbuffer_clear(struct XStringBuffer *buffer) {
 	if (buffer == NULL) {
 		return (false);
 	}
@@ -84,10 +84,10 @@ bool stringbuffer_clear(struct StringBuffer *buffer) {
 		return (true);
 	}
 
-	return (_stringbuffer_clear(buffer));
+	return (_xstringbuffer_clear(buffer));
 }
 
-bool stringbuffer_ensure_capacity(struct StringBuffer *buffer, const size_t size) {
+bool xstringbuffer_ensure_capacity(struct XStringBuffer *buffer, const size_t size) {
 	if (buffer == NULL) {
 		return (false);
 	}
@@ -96,10 +96,10 @@ bool stringbuffer_ensure_capacity(struct StringBuffer *buffer, const size_t size
 		return (true);
 	}
 
-	return (_stringbuffer_set_capacity(buffer, size));
+	return (_xstringbuffer_set_capacity(buffer, size));
 }
 
-bool stringbuffer_shrink(struct StringBuffer *buffer) {
+bool xstringbuffer_shrink(struct XStringBuffer *buffer) {
 	if (buffer == NULL) {
 		return (false);
 	}
@@ -108,10 +108,10 @@ bool stringbuffer_shrink(struct StringBuffer *buffer) {
 		return (true);
 	}
 
-	return (_stringbuffer_set_capacity(buffer, buffer->content_size));
+	return (_xstringbuffer_set_capacity(buffer, buffer->content_size));
 }
 
-void stringbuffer_release(struct StringBuffer *buffer) {
+void xstringbuffer_release(struct XStringBuffer *buffer) {
 	if (buffer == NULL) {
 		return;
 	}
@@ -129,14 +129,14 @@ void stringbuffer_release(struct StringBuffer *buffer) {
 	free(buffer);
 }
 
-bool stringbuffer_append(struct StringBuffer *buffer, char character) {
+bool xstringbuffer_append(struct XStringBuffer *buffer, char character) {
 	if (buffer == NULL) {
 		return (false);
 	}
 
 	if (buffer->content_size == buffer->max_size) {
 		const size_t new_size = buffer->content_size * 2;
-		if (!_stringbuffer_set_capacity(buffer, new_size)) {
+		if (!_xstringbuffer_set_capacity(buffer, new_size)) {
 			return (false);
 		}
 	}
@@ -148,17 +148,17 @@ bool stringbuffer_append(struct StringBuffer *buffer, char character) {
 	return (true);
 }
 
-bool stringbuffer_append_string(struct StringBuffer *buffer, const char *string) {
+bool xstringbuffer_append_string(struct XStringBuffer *buffer, const char *string) {
 	if (string == NULL) {
 		return (true);
 	}
 
 	const size_t length = strlen(string);
 
-	return (stringbuffer_append_string_with_options(buffer, string, 0, length));
+	return (xstringbuffer_append_string_with_options(buffer, string, 0, length));
 }
 
-bool stringbuffer_append_string_with_options(struct StringBuffer *buffer, const char *string, const size_t offset, const size_t length) {
+bool xstringbuffer_append_string_with_options(struct XStringBuffer *buffer, const char *string, const size_t offset, const size_t length) {
 	if (buffer == NULL) {
 		return (false);
 	}
@@ -176,10 +176,10 @@ bool stringbuffer_append_string_with_options(struct StringBuffer *buffer, const 
 		return (false);
 	}
 
-	return (stringbuffer_append_binary(buffer, string, offset, length));
-} /* stringbuffer_append_string_with_options */
+	return (xstringbuffer_append_binary(buffer, string, offset, length));
+} /* xstringbuffer_append_string_with_options */
 
-bool stringbuffer_append_binary(struct StringBuffer *buffer, const char *content, const size_t offset, const size_t length) {
+bool xstringbuffer_append_binary(struct XStringBuffer *buffer, const char *content, const size_t offset, const size_t length) {
 	if (buffer == NULL) {
 		return (false);
 	}
@@ -198,7 +198,7 @@ bool stringbuffer_append_binary(struct StringBuffer *buffer, const char *content
 			new_size = new_size * 2;
 		}
 
-		if (!_stringbuffer_set_capacity(buffer, new_size)) {
+		if (!_xstringbuffer_set_capacity(buffer, new_size)) {
 			return (false);
 		}
 	}
@@ -213,7 +213,7 @@ bool stringbuffer_append_binary(struct StringBuffer *buffer, const char *content
 	return (true);
 }
 
-char *stringbuffer_to_string(struct StringBuffer *buffer) {
+char *xstringbuffer_to_string(struct XStringBuffer *buffer) {
 	if (buffer == NULL || buffer->content_size == 0) {
 		char *string_copy = malloc(sizeof(char));
 		if (string_copy == NULL) {
@@ -239,45 +239,45 @@ char *stringbuffer_to_string(struct StringBuffer *buffer) {
 	return (string_copy);
 }
 
-bool stringbuffer_append_bool(struct StringBuffer *buffer, bool value) {
+bool xstringbuffer_append_bool(struct XStringBuffer *buffer, bool value) {
 	char *string = value ? "true" : "false";
 
-	return (stringbuffer_append_string(buffer, string));
+	return (xstringbuffer_append_string(buffer, string));
 }
 
-bool stringbuffer_append_short(struct StringBuffer *buffer, short value) {
-	return (_stringbuffer_add_numeric_type(buffer, "%hi", value));
+bool xstringbuffer_append_short(struct XStringBuffer *buffer, short value) {
+	return (_xstringbuffer_add_numeric_type(buffer, "%hi", value));
 }
 
-bool stringbuffer_append_int(struct StringBuffer *buffer, int value) {
-	return (_stringbuffer_add_numeric_type(buffer, "%i", value));
+bool xstringbuffer_append_int(struct XStringBuffer *buffer, int value) {
+	return (_xstringbuffer_add_numeric_type(buffer, "%i", value));
 }
 
-bool stringbuffer_append_long(struct StringBuffer *buffer, long value) {
-	return (_stringbuffer_add_numeric_type(buffer, "%li", value));
+bool xstringbuffer_append_long(struct XStringBuffer *buffer, long value) {
+	return (_xstringbuffer_add_numeric_type(buffer, "%li", value));
 }
 
-bool stringbuffer_append_long_long(struct StringBuffer *buffer, long long value) {
-	return (_stringbuffer_add_numeric_type(buffer, "%lli", value));
+bool xstringbuffer_append_long_long(struct XStringBuffer *buffer, long long value) {
+	return (_xstringbuffer_add_numeric_type(buffer, "%lli", value));
 }
 
-bool stringbuffer_append_unsigned_short(struct StringBuffer *buffer, unsigned short value) {
-	return (_stringbuffer_add_numeric_type(buffer, "%hu", value));
+bool xstringbuffer_append_unsigned_short(struct XStringBuffer *buffer, unsigned short value) {
+	return (_xstringbuffer_add_numeric_type(buffer, "%hu", value));
 }
 
-bool stringbuffer_append_unsigned_int(struct StringBuffer *buffer, unsigned int value) {
-	return (_stringbuffer_add_numeric_type(buffer, "%u", value));
+bool xstringbuffer_append_unsigned_int(struct XStringBuffer *buffer, unsigned int value) {
+	return (_xstringbuffer_add_numeric_type(buffer, "%u", value));
 }
 
-bool stringbuffer_append_unsigned_long(struct StringBuffer *buffer, unsigned long value) {
-	return (_stringbuffer_add_numeric_type(buffer, "%lu", value));
+bool xstringbuffer_append_unsigned_long(struct XStringBuffer *buffer, unsigned long value) {
+	return (_xstringbuffer_add_numeric_type(buffer, "%lu", value));
 }
 
-bool stringbuffer_append_unsigned_long_long(struct StringBuffer *buffer, unsigned long long value) {
-	return (_stringbuffer_add_numeric_type(buffer, "%llu", value));
+bool xstringbuffer_append_unsigned_long_long(struct XStringBuffer *buffer, unsigned long long value) {
+	return (_xstringbuffer_add_numeric_type(buffer, "%llu", value));
 }
 
-static bool _stringbuffer_clear(struct StringBuffer *buffer) {
+static bool _xstringbuffer_clear(struct XStringBuffer *buffer) {
 	if (buffer == NULL) {
 		return (false);
 	}
@@ -292,7 +292,7 @@ static bool _stringbuffer_clear(struct StringBuffer *buffer) {
 
 	buffer->value = malloc((buffer->max_size + 1) * sizeof(char));
 	if (buffer->value == NULL) {
-		stringbuffer_release(buffer);
+		xstringbuffer_release(buffer);
 		return (false);
 	}
 
@@ -302,7 +302,7 @@ static bool _stringbuffer_clear(struct StringBuffer *buffer) {
 	return (true);
 }
 
-static bool _stringbuffer_set_capacity(struct StringBuffer *buffer, const size_t size) {
+static bool _xstringbuffer_set_capacity(struct XStringBuffer *buffer, const size_t size) {
 	if (!buffer->allow_resize) {
 		return (false);
 	}
@@ -317,62 +317,62 @@ static bool _stringbuffer_set_capacity(struct StringBuffer *buffer, const size_t
 	return (true);
 }
 
-static bool _stringbuffer_add_numeric_type(struct StringBuffer *buffer, const char *format, ...) {
+static bool _xstringbuffer_add_numeric_type(struct XStringBuffer *buffer, const char *format, ...) {
 	if (buffer == NULL) {
 		return (false);
 	}
 
 	va_list args;
 	va_start(args, format);
-	const int length = vsnprintf(buffer->work_buffer, STRINGBUFFER_WORK_BUFFER_SIZE, format, args);
+	const int length = vsnprintf(buffer->work_buffer, XSTRINGBUFFER_WORK_BUFFER_SIZE, format, args);
 	va_end(args);
 
 	if (length <= 0) {
 		return (false);
 	}
 
-	const bool result = stringbuffer_append_string_with_options(buffer, buffer->work_buffer, 0, (size_t)length);
+	const bool result = xstringbuffer_append_string_with_options(buffer, buffer->work_buffer, 0, (size_t)length);
 
 	return (result);
 }
 
-void stringbuffer_escape_json(struct StringBuffer *buffer, const char *str) {
+void xstringbuffer_escape_json(struct XStringBuffer *buffer, const char *str) {
 	const char *p;
 
-	stringbuffer_append(buffer, '\"');
+	xstringbuffer_append(buffer, '\"');
 	for (p = str; *p; p++) {
 		switch (*p) {
 		case '\b':
-			stringbuffer_append_string(buffer, "\\b");
+			xstringbuffer_append_string(buffer, "\\b");
 			break;
 		case '\f':
-			stringbuffer_append_string(buffer, "\\f");
+			xstringbuffer_append_string(buffer, "\\f");
 			break;
 		case '\n':
-			stringbuffer_append_string(buffer, "\\n");
+			xstringbuffer_append_string(buffer, "\\n");
 			break;
 		case '\r':
-			stringbuffer_append_string(buffer, "\\r");
+			xstringbuffer_append_string(buffer, "\\r");
 			break;
 		case '\t':
-			stringbuffer_append_string(buffer, "\\t");
+			xstringbuffer_append_string(buffer, "\\t");
 			break;
 		case '"':
-			stringbuffer_append_string(buffer, "\\\"");
+			xstringbuffer_append_string(buffer, "\\\"");
 			break;
 		case '\\':
-			stringbuffer_append_string(buffer, "\\\\");
+			xstringbuffer_append_string(buffer, "\\\\");
 			break;
 		default:
 			if ((unsigned char)*p < ' ') {
 				char hex[16];
 				sprintf(hex, "\\u%04x", (int)*p);
-				stringbuffer_append_string(buffer, hex);
+				xstringbuffer_append_string(buffer, hex);
 			} else {
-				stringbuffer_append(buffer, *p);
+				xstringbuffer_append(buffer, *p);
 			}
 			break;
 		}
 	}
-	stringbuffer_append(buffer, '\"');
+	xstringbuffer_append(buffer, '\"');
 }

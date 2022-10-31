@@ -1,48 +1,48 @@
-#ifndef __STRINGBUFFER_H__
-#define __STRINGBUFFER_H__
+#ifndef __XSTRINGBUFFER_H__
+#define __XSTRINGBUFFER_H__
 
 #include <stdbool.h>
 #include <stddef.h>
 
-#ifndef STRINGBUFFER_INITIAL_BUFFER_SIZE
-#define STRINGBUFFER_INITIAL_BUFFER_SIZE 64
+#ifndef XSTRINGBUFFER_INITIAL_BUFFER_SIZE
+#define XSTRINGBUFFER_INITIAL_BUFFER_SIZE 64
 #endif
 
-typedef struct StringBuffer stringbuffer_t;
+typedef struct XStringBuffer xstringbuffer_t;
 
-struct StringBuffer;
+struct XStringBuffer;
 
-struct StringBuffer *stringbuffer_new(void);
-struct StringBuffer *stringbuffer_new_with_options(const size_t /* initial_size */, const bool /* allow_resize */);
+struct XStringBuffer *xstringbuffer_new(void);
+struct XStringBuffer *xstringbuffer_new_with_options(const size_t /* initial_size */, const bool /* allow_resize */);
 
-bool stringbuffer_is_empty(struct StringBuffer *);
-size_t stringbuffer_get_initial_size(struct StringBuffer *);
-size_t stringbuffer_get_content_size(struct StringBuffer *);
-size_t stringbuffer_get_max_size(struct StringBuffer *);
-bool stringbuffer_is_allow_resize(struct StringBuffer *);
+bool xstringbuffer_is_empty(struct XStringBuffer *);
+size_t xstringbuffer_get_initial_size(struct XStringBuffer *);
+size_t xstringbuffer_get_content_size(struct XStringBuffer *);
+size_t xstringbuffer_get_max_size(struct XStringBuffer *);
+bool xstringbuffer_is_allow_resize(struct XStringBuffer *);
 
-bool stringbuffer_clear(struct StringBuffer *);
-void stringbuffer_release(struct StringBuffer *);
+bool xstringbuffer_clear(struct XStringBuffer *);
+void xstringbuffer_release(struct XStringBuffer *);
 
-bool stringbuffer_ensure_capacity(struct StringBuffer *, const size_t /* size */);
-bool stringbuffer_shrink(struct StringBuffer *);
+bool xstringbuffer_ensure_capacity(struct XStringBuffer *, const size_t /* size */);
+bool xstringbuffer_shrink(struct XStringBuffer *);
 
-char *stringbuffer_to_string(struct StringBuffer *);
+char *xstringbuffer_to_string(struct XStringBuffer *);
 
-bool stringbuffer_append(struct StringBuffer *, char);
-bool stringbuffer_append_string(struct StringBuffer *, const char *);
-bool stringbuffer_append_string_with_options(struct StringBuffer *, const char *, const size_t /* offset */, const size_t /* length */);
-bool stringbuffer_append_binary(struct StringBuffer *, const char *, const size_t /* offset */, const size_t /* length */);
-bool stringbuffer_append_bool(struct StringBuffer *, bool);
-bool stringbuffer_append_short(struct StringBuffer *, short);
-bool stringbuffer_append_int(struct StringBuffer *, int);
-bool stringbuffer_append_long(struct StringBuffer *, long);
-bool stringbuffer_append_long_long(struct StringBuffer *, long long);
-bool stringbuffer_append_unsigned_short(struct StringBuffer *, unsigned short);
-bool stringbuffer_append_unsigned_int(struct StringBuffer *, unsigned int);
-bool stringbuffer_append_unsigned_long(struct StringBuffer *, unsigned long);
-bool stringbuffer_append_unsigned_long_long(struct StringBuffer *, unsigned long long);
+bool xstringbuffer_append(struct XStringBuffer *, char);
+bool xstringbuffer_append_string(struct XStringBuffer *, const char *);
+bool xstringbuffer_append_string_with_options(struct XStringBuffer *, const char *, const size_t /* offset */, const size_t /* length */);
+bool xstringbuffer_append_binary(struct XStringBuffer *, const char *, const size_t /* offset */, const size_t /* length */);
+bool xstringbuffer_append_bool(struct XStringBuffer *, bool);
+bool xstringbuffer_append_short(struct XStringBuffer *, short);
+bool xstringbuffer_append_int(struct XStringBuffer *, int);
+bool xstringbuffer_append_long(struct XStringBuffer *, long);
+bool xstringbuffer_append_long_long(struct XStringBuffer *, long long);
+bool xstringbuffer_append_unsigned_short(struct XStringBuffer *, unsigned short);
+bool xstringbuffer_append_unsigned_int(struct XStringBuffer *, unsigned int);
+bool xstringbuffer_append_unsigned_long(struct XStringBuffer *, unsigned long);
+bool xstringbuffer_append_unsigned_long_long(struct XStringBuffer *, unsigned long long);
 
-void stringbuffer_escape_json(struct StringBuffer *buffer, const char *str);
+void xstringbuffer_escape_json(struct XStringBuffer *buffer, const char *str);
 
 #endif

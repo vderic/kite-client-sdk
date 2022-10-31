@@ -304,22 +304,22 @@ int kite_next_row(kite_handle_t *client, xrg_iter_t **retiter, char *errmsg,
   return 0;
 }
 
-static void setup_fragment(stringbuffer_t *sbuf, int fragid, int fragcnt) {
+static void setup_fragment(xstringbuffer_t *sbuf, int fragid, int fragcnt) {
 
-  stringbuffer_append_string(sbuf, "\"fragment\": ");
-  stringbuffer_append(sbuf, '[');
-  stringbuffer_append_int(sbuf, fragid);
-  stringbuffer_append(sbuf, ',');
-  stringbuffer_append_int(sbuf, fragcnt);
-  stringbuffer_append(sbuf, ']');
+  xstringbuffer_append_string(sbuf, "\"fragment\": ");
+  xstringbuffer_append(sbuf, '[');
+  xstringbuffer_append_int(sbuf, fragid);
+  xstringbuffer_append(sbuf, ',');
+  xstringbuffer_append_int(sbuf, fragcnt);
+  xstringbuffer_append(sbuf, ']');
 }
 
-static void setup_sql(stringbuffer_t *sbuf, const char *sql) {
-  stringbuffer_append_string(sbuf, "\"sql\": ");
-  stringbuffer_escape_json(sbuf, sql);
+static void setup_sql(xstringbuffer_t *sbuf, const char *sql) {
+  xstringbuffer_append_string(sbuf, "\"sql\": ");
+  xstringbuffer_escape_json(sbuf, sql);
 }
 
-static int setup_schema(stringbuffer_t *sbuf, char *schema, char *errmsg,
+static int setup_schema(xstringbuffer_t *sbuf, char *schema, char *errmsg,
                         int errlen) {
 
   const char colon = ':';
@@ -329,7 +329,7 @@ static int setup_schema(stringbuffer_t *sbuf, char *schema, char *errmsg,
   char *cname, *type, *precision, *scale;
   int i = 0;
 
-  stringbuffer_append_string(sbuf, "\"schema\": [");
+  xstringbuffer_append_string(sbuf, "\"schema\": [");
 
   tok = strtok_r(rest, sep, &rest);
   while (tok) {
@@ -362,41 +362,41 @@ static int setup_schema(stringbuffer_t *sbuf, char *schema, char *errmsg,
     }
 
     if (i > 0) {
-      stringbuffer_append(sbuf, ',');
+      xstringbuffer_append(sbuf, ',');
     }
-    stringbuffer_append(sbuf, '{');
-    stringbuffer_append(sbuf, '"');
-    stringbuffer_append_string(sbuf, "name");
-    stringbuffer_append(sbuf, '"');
-    stringbuffer_append(sbuf, ':');
-    stringbuffer_escape_json(sbuf, cname);
-    stringbuffer_append(sbuf, ',');
-    stringbuffer_append(sbuf, '"');
-    stringbuffer_append_string(sbuf, "type");
-    stringbuffer_append(sbuf, '"');
-    stringbuffer_append(sbuf, ':');
-    stringbuffer_escape_json(sbuf, type);
+    xstringbuffer_append(sbuf, '{');
+    xstringbuffer_append(sbuf, '"');
+    xstringbuffer_append_string(sbuf, "name");
+    xstringbuffer_append(sbuf, '"');
+    xstringbuffer_append(sbuf, ':');
+    xstringbuffer_escape_json(sbuf, cname);
+    xstringbuffer_append(sbuf, ',');
+    xstringbuffer_append(sbuf, '"');
+    xstringbuffer_append_string(sbuf, "type");
+    xstringbuffer_append(sbuf, '"');
+    xstringbuffer_append(sbuf, ':');
+    xstringbuffer_escape_json(sbuf, type);
 
     if (precision) {
-      stringbuffer_append(sbuf, ',');
-      stringbuffer_append(sbuf, '"');
-      stringbuffer_append_string(sbuf, "precision");
-      stringbuffer_append(sbuf, '"');
-      stringbuffer_append(sbuf, ':');
-      stringbuffer_append_string(sbuf, precision);
-      stringbuffer_append(sbuf, ',');
-      stringbuffer_append(sbuf, '"');
-      stringbuffer_append_string(sbuf, "scale");
-      stringbuffer_append(sbuf, '"');
-      stringbuffer_append(sbuf, ':');
-      stringbuffer_append_string(sbuf, scale);
+      xstringbuffer_append(sbuf, ',');
+      xstringbuffer_append(sbuf, '"');
+      xstringbuffer_append_string(sbuf, "precision");
+      xstringbuffer_append(sbuf, '"');
+      xstringbuffer_append(sbuf, ':');
+      xstringbuffer_append_string(sbuf, precision);
+      xstringbuffer_append(sbuf, ',');
+      xstringbuffer_append(sbuf, '"');
+      xstringbuffer_append_string(sbuf, "scale");
+      xstringbuffer_append(sbuf, '"');
+      xstringbuffer_append(sbuf, ':');
+      xstringbuffer_append_string(sbuf, scale);
     }
-    stringbuffer_append(sbuf, '}');
+    xstringbuffer_append(sbuf, '}');
     tok = strtok_r(NULL, sep, &rest);
     i++;
   }
 
-  stringbuffer_append(sbuf, ']');
+  xstringbuffer_append(sbuf, ']');
 
   return 0;
 }
@@ -404,15 +404,15 @@ static int setup_schema(stringbuffer_t *sbuf, char *schema, char *errmsg,
 static int setup_schema_json(char **ret, char *schema, char *errmsg,
                              int errlen) {
   int e = 0;
-  stringbuffer_t *sbuf = stringbuffer_new();
+  xstringbuffer_t *sbuf = xstringbuffer_new();
   e = setup_schema(sbuf, schema, errmsg, errlen);
   if (e) {
     goto bail;
   }
-  *ret = stringbuffer_to_string(sbuf);
+  *ret = xstringbuffer_to_string(sbuf);
 
 bail:
-  stringbuffer_release(sbuf);
+  xstringbuffer_release(sbuf);
   return e;
 }
 
@@ -441,16 +441,16 @@ static int setup_address(char *addr, char ***addrs, int *naddr, char *errmsg,
 static char *setup_json(const char *schema_json, const char *sql, int fragid,
                         int fragcnt) {
   char *ret = 0;
-  stringbuffer_t *sbuf = stringbuffer_new();
-  stringbuffer_append(sbuf, '{');
+  xstringbuffer_t *sbuf = xstringbuffer_new();
+  xstringbuffer_append(sbuf, '{');
   setup_sql(sbuf, sql);
-  stringbuffer_append(sbuf, ',');
-  stringbuffer_append_string(sbuf, schema_json);
-  stringbuffer_append(sbuf, ',');
+  xstringbuffer_append(sbuf, ',');
+  xstringbuffer_append_string(sbuf, schema_json);
+  xstringbuffer_append(sbuf, ',');
   setup_fragment(sbuf, fragid, fragcnt);
-  stringbuffer_append(sbuf, '}');
-  ret = stringbuffer_to_string(sbuf);
-  stringbuffer_release(sbuf);
+  xstringbuffer_append(sbuf, '}');
+  ret = xstringbuffer_to_string(sbuf);
+  xstringbuffer_release(sbuf);
 
   return ret;
 }
