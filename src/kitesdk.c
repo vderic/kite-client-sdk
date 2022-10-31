@@ -401,21 +401,16 @@ static int setup_schema(stringbuffer_t *sbuf, char *schema, char *errmsg, int er
 	return 0;
 }
 
-static int setup_schema_sql(char **ret, char *schema, const char *sql, char *errmsg, int errlen) {
+static int setup_schema_json(char **ret, char *schema, const char *sql, char *errmsg, int errlen) {
 	int e = 0;
 	stringbuffer_t *sbuf = stringbuffer_new();
-
-	stringbuffer_append(sbuf, '{');
-	setup_sql(sbuf, sql);
-	stringbuffer_append(sbuf, ',');
 	e = setup_schema(sbuf, schema, errmsg, errlen);
 	if (e) {
-		return e;
+		goto bail;
 	}
-	stringbuffer_append(sbuf, ',');
-
 	*ret = stringbuffer_to_string(sbuf);
 
+bail:
 	stringbuffer_release(sbuf);
 	return e;
 }
@@ -446,7 +441,7 @@ kite_handle_t* kite_submit(char *addr, const char *schema, const char *sql, int 
 	int nhost = 0;
 	int naddr = 0;
 	char **addrs = 0;
-	char *partial = 0;
+	char *schema_json = 0;
 	int e = 0;
 	char **hosts = 0;
 	char **jsons = 0;
@@ -458,7 +453,7 @@ kite_handle_t* kite_submit(char *addr, const char *schema, const char *sql, int 
 		goto bail;
 	}
 
-	e = setup_schema_sql(&partial, schema_cpy, sql, errmsg, errlen);
+	e = setup_schema_json(&schema_json, schema_cpy, sql, errmsg, errlen);
 	if (e) {
 		fprintf(stderr, "setup_schema_sql: error %s", errmsg);
 		goto bail;
@@ -474,11 +469,14 @@ kite_handle_t* kite_submit(char *addr, const char *schema, const char *sql, int 
 			hosts[i] = addrs[n];
 
 			stringbuffer_t *sbuf = stringbuffer_new();
-			stringbuffer_append_string(sbuf, partial);
+			stringbuffer_append(sbuf, '{');
+			setup_sql(sbuf, sql);
+			stringbuffer_append(sbuf, ',');
+			stringbuffer_append_string(sbuf, schema_json);
+			stringbuffer_append(sbuf, ',');
 			setup_fragment(sbuf, i, fragcnt);
 			stringbuffer_append(sbuf, '}');
 			jsons[i] = stringbuffer_to_string(sbuf);
-			printf(jsons[i]);
 			stringbuffer_release(sbuf);
 		}
 
@@ -489,11 +487,14 @@ kite_handle_t* kite_submit(char *addr, const char *schema, const char *sql, int 
 		jsons = malloc(sizeof(char *) * nhost);
 		hosts[0] = addrs[n];
 		stringbuffer_t *sbuf = stringbuffer_new();
-		stringbuffer_append_string(sbuf, partial);
+		stringbuffer_append(sbuf, '{');
+		setup_sql(sbuf, sql);
+		stringbuffer_append(sbuf, ',');
+		stringbuffer_append_string(sbuf, schema_json);
+		stringbuffer_append(sbuf, ',');
 		setup_fragment(sbuf, fragid, fragcnt);
 		stringbuffer_append(sbuf, '}');
 		jsons[0] = stringbuffer_to_string(sbuf);
-		printf(jsons[0]);
 		stringbuffer_release(sbuf);
 	}
 
@@ -525,8 +526,8 @@ bail:
 		free(addrs);
 	}
 
-	if (partial) {
-		free(partial);
+	if (schema_json) {
+		free(schema_json);
 	}
 
 	if (hosts) {
