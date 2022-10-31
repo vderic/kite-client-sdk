@@ -9,26 +9,27 @@ typedef struct kite_handle_t kite_handle_t;
 extern "C" {
 #endif
 
-/*
- * submit query to kite
- * addr: lines of "host:port"
- * schema: lines of "name:type:precision:scale"
- * fragid: -1 indicate all fragments; [0...fragcnt)
+/**
+ * Submit a SQL query to kite.
+ * addr: lines of "host:port".
+ * schema: lines of "name:type:precision:scale".
+ * fragid: -1 indicate all fragments; otherwise, a number between 0 and fragcnt-1.
  * fragcnt: max number of fragments.
  */
 kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
                            int fragid, int fragcnt, char *errmsg, int errlen);
 
-/*
- * get the next row from socket
- * if error return -1 error,
- * if success return 0,
- * if no more pending data return 1
- * */
+/**
+ * Get the next row from kite server.
+ * Returns 0 on success, -1 otherwise.
+ * On EOF, return NULL in retiter.
+ */
 int kite_next_row(kite_handle_t *, xrg_iter_t **retiter, char *errmsg,
                   int errlen);
 
-/* destroy the client */
+/**
+ * Release the connection to kite server.
+ */
 void kite_release(kite_handle_t *);
 
 #ifdef __cplusplus
