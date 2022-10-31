@@ -401,7 +401,7 @@ static int setup_schema(stringbuffer_t *sbuf, char *schema, char *errmsg, int er
 	return 0;
 }
 
-static int setup_schema_json(char **ret, char *schema, const char *sql, char *errmsg, int errlen) {
+static int setup_schema_json(char **ret, char *schema, char *errmsg, int errlen) {
 	int e = 0;
 	stringbuffer_t *sbuf = stringbuffer_new();
 	e = setup_schema(sbuf, schema, errmsg, errlen);
@@ -436,6 +436,22 @@ static int setup_address(char *addr, char ***addrs, int *naddr, char *errmsg, in
 	return 0;
 }
 
+static char *setup_json(const char *schema_json, const char *sql, int fragid, int fragcnt) {
+	char *ret = 0;
+	stringbuffer_t *sbuf = stringbuffer_new();
+	stringbuffer_append(sbuf, '{');
+	setup_sql(sbuf, sql);
+	stringbuffer_append(sbuf, ',');
+	stringbuffer_append_string(sbuf, schema_json);
+	stringbuffer_append(sbuf, ',');
+	setup_fragment(sbuf, fragid, fragcnt);
+	stringbuffer_append(sbuf, '}');
+	ret = stringbuffer_to_string(sbuf);
+	stringbuffer_release(sbuf);
+
+	return ret;
+}
+
 kite_handle_t* kite_submit(char *addr, const char *schema, const char *sql, int fragid, int fragcnt, char *errmsg, int errlen) {
 
 	int nhost = 0;
@@ -453,7 +469,7 @@ kite_handle_t* kite_submit(char *addr, const char *schema, const char *sql, int 
 		goto bail;
 	}
 
-	e = setup_schema_json(&schema_json, schema_cpy, sql, errmsg, errlen);
+	e = setup_schema_json(&schema_json, schema_cpy, errmsg, errlen);
 	if (e) {
 		fprintf(stderr, "setup_schema_sql: error %s", errmsg);
 		goto bail;
@@ -467,17 +483,7 @@ kite_handle_t* kite_submit(char *addr, const char *schema, const char *sql, int 
 		for (int i = 0 ; i < nhost ; i++) {
 			int n = i % naddr;
 			hosts[i] = addrs[n];
-
-			stringbuffer_t *sbuf = stringbuffer_new();
-			stringbuffer_append(sbuf, '{');
-			setup_sql(sbuf, sql);
-			stringbuffer_append(sbuf, ',');
-			stringbuffer_append_string(sbuf, schema_json);
-			stringbuffer_append(sbuf, ',');
-			setup_fragment(sbuf, i, fragcnt);
-			stringbuffer_append(sbuf, '}');
-			jsons[i] = stringbuffer_to_string(sbuf);
-			stringbuffer_release(sbuf);
+			jsons[i] = setup_json(schema_json, sql, i, fragcnt);
 		}
 
 	} else {
@@ -486,16 +492,7 @@ kite_handle_t* kite_submit(char *addr, const char *schema, const char *sql, int 
 		hosts = malloc(sizeof(char *) * nhost);
 		jsons = malloc(sizeof(char *) * nhost);
 		hosts[0] = addrs[n];
-		stringbuffer_t *sbuf = stringbuffer_new();
-		stringbuffer_append(sbuf, '{');
-		setup_sql(sbuf, sql);
-		stringbuffer_append(sbuf, ',');
-		stringbuffer_append_string(sbuf, schema_json);
-		stringbuffer_append(sbuf, ',');
-		setup_fragment(sbuf, fragid, fragcnt);
-		stringbuffer_append(sbuf, '}');
-		jsons[0] = stringbuffer_to_string(sbuf);
-		stringbuffer_release(sbuf);
+		jsons[0] = setup_json(schema_json, sql, fragid, fragcnt);
 	}
 
 	// connect socket
