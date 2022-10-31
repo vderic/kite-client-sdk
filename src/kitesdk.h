@@ -10,7 +10,13 @@ typedef struct kite_handle_t kite_handle_t;
 extern "C" {
 #endif
 
-/* submit query to kite */
+/*
+ * submit query to kite
+ * addr: lines of "host:port"
+ * schema: lines of "name:type:precision:scale"
+ * fragid: -1 indicate all fragments; [0...fragcnt)
+ * fragcnt: max number of fragments.
+ */
 kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
                            int fragid, int fragcnt, char *errmsg, int errlen);
 
