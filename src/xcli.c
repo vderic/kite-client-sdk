@@ -31,95 +31,76 @@ static char *read_file_fully(const char *fn) {
 	return string;
 }
 
-static char *replace_fragment(char *json, int fragid, int fragcnt) {
-	char *ret = 0;
-	char fragment[1024];
-	char *p = 0;
-
-	sprintf(fragment, ",\"fragment\" : [%d, %d]", fragid, fragcnt);
-
-	char *p1 = strrchr(json, '}');
-	if (! p1) return strdup(json);
-
-	ret = malloc(strlen(json) + strlen(fragment) + 1);
-
-	p = ret;
-	strncpy(p, json, p1-json);
-	p += p1-json;
-	strcpy(p, fragment);
-	p += strlen(fragment);
-	strcpy(p, p1);
-
-	return ret;
-}
-
-
 int main(int argc, const char *argv[]) {
 	char *host;
-	const char *jsonfn;
+	const char *sqlfn;
+	const char *schemafn;
 	int e;
-	char *json = 0;
-	char **jsarr = 0;
+	char *sql = 0;
+	char *schema = 0;
 	int nrow = 0;
-	int nconn = 0;
+	int fragid = 0, fragcnt = 0;
+	kite_handle_t *hdl = 0;
+	char errmsg[1024];
+	int errlen = sizeof(errmsg);
 
-	if (argc != 4) {
-		fprintf(stderr, "usage: xcli host:port jsonfn #connection\n");
+	if (argc != 6) {
+		fprintf(stderr, "usage: xcli host1:port1,host2:port2,...,hostN:portN schemafn jsonfn fragid fragcnt\n");
 		return 1;
 	}
 
 	host = strdup(argv[1]);
-	jsonfn = argv[2];
-	nconn = atoi(argv[3]);
+	schemafn = argv[2];
+	sqlfn = argv[3];
+	fragid = atoi(argv[4]);
+	fragcnt = atoi(argv[5]);
 
-	json = read_file_fully(jsonfn);
-
-	if (! json) {
-		fprintf(stderr, "read file failed\n");
+	schema = read_file_fully(schemafn);
+	if (! schema) {
+		fprintf(stderr, "schema: read file failed\n");
 		return 1;
 	}
 
-	jsarr = malloc(sizeof(char *) * nconn);
+	sql = read_file_fully(sqlfn);
 
-	for (int i = 0 ; i < nconn ; i++) {
-		jsarr[i] = replace_fragment(json, i, nconn);
-		fprintf(stderr, "json[%d] = *%s*\n", i, jsarr[i]);
+	if (! sql) {
+		fprintf(stderr, "sql: read file failed\n");
+		return 1;
 	}
 
-	kite_client_t *cli = kite_client_create();
-
-	kite_client_connect(cli, host, nconn);
-
-	kite_client_exec(cli, (const char **)jsarr, nconn);
+	hdl = kite_submit(host, schema, sql, fragid, fragcnt, errmsg, errlen);
+	if (!hdl) {
+		fprintf(stderr, "kite_submit failed. %s", errmsg);
+		return 1;
+	}
 
 	e = 0;
 	while (e == 0) {
-		xrg_attr_t *attrs = 0;
-		void **values = 0;
-		char **flags = 0;
-		int ncol = 0;
-		e = kite_client_next_row(cli, &attrs, &values, &flags, &ncol);
+		xrg_iter_t *iter = 0;
+		e = kite_next_row(hdl, &iter, errmsg, errlen);
 		if (e == 0) {
 			// data here
 	
 			nrow++;
 		} else if (e == 1) {
 			// no more row
-			
-			fprintf(stderr, "eof nrow = %d\n", nrow);
+			fprintf(stderr, "EOF nrow = %d\n", nrow);
 		} else {
 			// error handling
-			fprintf(stderr, "error %d nrow = %d\n", e, nrow);
+			fprintf(stderr, "error %d nrow = %d\n. (reason = %s)", e, nrow, errmsg);
 		}
 	}
 
-	free(json);
-	for (int i = 0 ; i < nconn ; i++) {
-		free(jsarr[i]);
-	}
-	free(jsarr);
 	free(host);
-	kite_client_destroy(cli);
+	if (schema) {
+		free(schema);
+	}
+	if (sql) {
+		free(sql);
+	}
+	if (hdl) {
+		kite_release(hdl);
+	}
 
 	return 0;
 }

@@ -18,7 +18,7 @@ CXXFLAGS += $(filter-out -std=c99, $(CFLAGS))  -std=c++17 -static-libstdc++
 LDFLAGS = -L../ext/lib -Wl,-rpath='$$ORIGIN'/../ext/lib
 LDLIBS = -levent -lsproto -lxrg -lcrypto -lz -llz4 -lpthread -ldl
 
-CFILES = kite_client.c kitesdk.c
+CFILES = stringbuffer.c kite_result.c kitesdk.c
 CXXFILES = 
 
 OBJS = $(CXXFILES:.cpp=.o) $(CFILES:.c=.o)

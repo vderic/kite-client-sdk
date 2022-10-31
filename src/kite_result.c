@@ -7,7 +7,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include "kite_client.h"
+#include "kite_result.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
