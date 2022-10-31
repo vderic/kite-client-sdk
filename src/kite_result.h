@@ -5,16 +5,16 @@
 extern "C" {
 #endif
 
-#include <stdbool.h>
 #include "sockstream.h"
 #include "xrg.h"
+#include <stdbool.h>
 
 typedef struct kite_result_t {
-	int ncol;
-	int nrow;
-	xrg_iter_t *iter;
-	xrg_vector_t **cols;
-	int cols_size;
+  int ncol;
+  int nrow;
+  xrg_iter_t *iter;
+  xrg_vector_t **cols;
+  int cols_size;
 
 } kite_result_t;
 
