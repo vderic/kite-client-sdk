@@ -2,7 +2,6 @@
 #define _KITESDK_H_
 
 #include "xrg.h"
-#include <stdbool.h>
 
 typedef struct kite_handle_t kite_handle_t;
 
