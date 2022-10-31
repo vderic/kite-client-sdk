@@ -7,14 +7,19 @@
 typedef struct kite_handle_t kite_handle_t;
 
 #ifdef __cplusplus
-extern "C"
+extern "C" {
 #endif
 
-    kite_handle_t *
-    kite_submit(char *addr, const char *schema, const char *sql, int fragid,
-                int fragcnt, char *errmsg, int errlen);
+/* submit query to kite */
+kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
+                           int fragid, int fragcnt, char *errmsg, int errlen);
 
-/* get the next row from socket */
+/*
+ * get the next row from socket
+ * if error return -1 error,
+ * if success return 0,
+ * if no more pending data return 1
+ * */
 int kite_next_row(kite_handle_t *, xrg_iter_t **retiter, char *errmsg,
                   int errlen);
 
