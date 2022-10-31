@@ -501,6 +501,11 @@ kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
 
   // connect socket
   hdl = kite_handle_create();
+  if (!hdl) {
+    snprintf(errmsg, errlen, "kite_handle_create_failed");
+    goto bail;
+  }
+
   e = kite_handle_connect(hdl, hosts, nhost, errmsg, errlen);
   if (e) {
     kite_release(hdl);

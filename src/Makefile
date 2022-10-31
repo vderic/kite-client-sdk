@@ -45,7 +45,7 @@ clean:
 	rm -f *.a *.o *.d $(EXECS)
 
 format:
-	clang-format -i *.cpp *.hpp *.c *.h
+	clang-format -i *.c *.h
 
 .PHONY: all clean format
 
