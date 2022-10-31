@@ -521,8 +521,8 @@ bail:
 			if (addrs[i]) {
 				free(addrs[i]);
 			}
-			free(addrs);
 		}
+		free(addrs);
 	}
 
 	if (partial) {
@@ -539,8 +539,8 @@ bail:
 			if (jsons[i]) {
 				free(jsons[i]);
 			}
-			free(jsons);
 		}
+		free(jsons);
 	}
 
 	if (schema_cpy) {
