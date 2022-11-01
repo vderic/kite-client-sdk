@@ -1,7 +1,7 @@
 prefix ?= /usr/local
 CC ?= gcc
 CXX ?= g++
-CFLAGS += -I../ext/include -Wmissing-declarations -Wall -Wextra -mavx2 -mfma -mbmi2 -MMD
+CFLAGS += -I../ext/include -Wmissing-declarations -Wall -Wextra -mavx2 -mfma -mbmi2 -MMD -fPIC
 
 ifdef DEBUG
     CFLAGS += -O0 -g
