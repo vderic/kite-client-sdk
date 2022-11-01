@@ -14,7 +14,7 @@ $(SUBDIR):
 include/event2/event.h : tarball/$(LIBEVENTTAR)
 	rm -rf $(LIBEVENTDIR)
 	tar zxvf tarball/$(LIBEVENTTAR)
-	(cd $(LIBEVENTDIR) && mkdir -p build && cd build && cmake -DEVENT__LIBRARY_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=../.. .. && make && make install)
+	(cd $(LIBEVENTDIR) && mkdir -p build && cd build && cmake -DCMAKE_C_FLAGS=-fPIC -DEVENT__LIBRARY_TYPE=STATIC -DCMAKE_INSTALL_PREFIX=../.. .. && make && make install)
 
 include/xrg.h: tarball/$(XRGTAR)
 	rm -rf $(XRGDIR)
