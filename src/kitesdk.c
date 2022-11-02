@@ -293,7 +293,8 @@ int kite_next_row(kite_handle_t *client, xrg_iter_t **retiter, char *errmsg,
       return 0;
     } else if (e == 1) {
       // no more pending events
-      return 1;
+      *retiter = 0;
+      return 0;
     } else {
       // unhandled error
       snprintf(errmsg, errlen, "kite_result_next_row: unhandled error");
