@@ -28,7 +28,6 @@ static void listcell_free(listcell_t *lc) {
 typedef struct list_t list_t;
 struct list_t {
   listcell_t *head;
-  listcell_t *tail;
 };
 
 static list_t *list_append(list_t *list, kite_result_t *arg) {
@@ -38,7 +37,7 @@ static list_t *list_append(list_t *list, kite_result_t *arg) {
 
   if (list == NULL) {
     ret = (list_t *)malloc(sizeof(list_t));
-    ret->head = ret->tail = 0;
+    ret->head = 0;
   } else {
     ret = list;
   }
@@ -47,16 +46,16 @@ static list_t *list_append(list_t *list, kite_result_t *arg) {
   lc->arg = arg;
   lc->next = 0;
 
-  if (ret->tail) {
-    ret->tail->next = lc;
-    ret->tail = lc;
+  if (ret->head == NULL) {
+    ret->head = lc;
   } else {
-    ret->tail = lc;
+    listcell_t *curr = ret->head;
+    while (curr->next != NULL) {
+      curr = curr->next;
+    }
+    curr->next = lc;
   }
 
-  if (ret->head == NULL) {
-    ret->head = ret->tail;
-  }
   return ret;
 }
 
@@ -78,9 +77,6 @@ static listcell_t *list_pop(list_t *list) {
     listcell_t *ret = list->head;
     if (list->head) {
       list->head = list->head->next;
-      if (list->head == NULL) {
-        list->tail = NULL;
-      }
     }
     return ret;
   }
@@ -184,7 +180,7 @@ static int kite_handle_exec(kite_handle_t *client, char **json, int n,
 static int kite_handle_assign_socket(kite_handle_t *client, int *sockfd,
                                      int nsocket, char *errmsg, int errlen) {
   struct event *ev;
-  //struct timeval fivesec = {5, 0};
+  // struct timeval fivesec = {5, 0};
 
   client->nevt = nsocket;
   client->evcxt = (kite_evcxt_t *)malloc(sizeof(kite_evcxt_t) * nsocket);
@@ -196,10 +192,11 @@ static int kite_handle_assign_socket(kite_handle_t *client, int *sockfd,
   for (int i = 0; i < client->nevt; i++) {
     client->evcxt[i].ss = sockstream_assign(sockfd[i]);
     client->evcxt[i].arg = client;
-    ev = event_new(client->evbase, sockfd[i], /* EV_TIMEOUT | */ EV_READ | EV_PERSIST,
-                   kite_evcb, &client->evcxt[i]);
+    ev = event_new(client->evbase, sockfd[i],
+                   /* EV_TIMEOUT | */ EV_READ | EV_PERSIST, kite_evcb,
+                   &client->evcxt[i]);
     client->evcxt[i].ev = ev;
-    //event_add(ev, &fivesec);
+    // event_add(ev, &fivesec);
     event_add(ev, NULL);
   }
   return 0;

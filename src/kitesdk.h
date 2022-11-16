@@ -13,8 +13,8 @@ extern "C" {
  * Submit a SQL query to kite.
  * addr: lines of "host:port".
  * schema: lines of "name:type:precision:scale".
- * fragid: -1 indicate all fragments; otherwise, a number between 0 and fragcnt-1.
- * fragcnt: max number of fragments.
+ * fragid: -1 indicate all fragments; otherwise, a number between 0 and
+ * fragcnt-1. fragcnt: max number of fragments.
  */
 kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
                            int fragid, int fragcnt, char *errmsg, int errlen);

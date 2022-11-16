@@ -46,7 +46,7 @@ int main(int argc, const char *argv[]) {
 
   if (argc != 6) {
     fprintf(stderr, "usage: xcli host1:port1,host2:port2,...,hostN:portN "
-                    "schemafn jsonfn fragid fragcnt\n");
+                    "schemafn sqlfn fragid fragcnt\n");
     return 1;
   }
 
@@ -81,11 +81,13 @@ int main(int argc, const char *argv[]) {
     e = kite_next_row(hdl, &iter, errmsg, errlen);
     if (e == 0) {
       // data here
+      if (iter == NULL) {
+      	// no more row
+	      fprintf(stderr, "EOF nrow = %d\n", nrow);
+	      break;
+      }
 
       nrow++;
-    } else if (e == 1) {
-      // no more row
-      fprintf(stderr, "EOF nrow = %d\n", nrow);
     } else {
       // error handling
       fprintf(stderr, "error %d nrow = %d\n. (reason = %s)", e, nrow, errmsg);

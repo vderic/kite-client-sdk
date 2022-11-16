@@ -79,7 +79,8 @@ int socket_connect(char *host) {
   hints.ai_socktype = SOCK_STREAM;
 
   if (0 != getaddrinfo(newhost, port, &hints, &res)) {
-    fprintf(stderr, "kite: getaddrinfo error. host = %s, port = %s", newhost, port);
+    fprintf(stderr, "kite: getaddrinfo error. host = %s, port = %s", newhost,
+            port);
     return -1;
   }
 
