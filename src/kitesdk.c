@@ -184,7 +184,7 @@ static int kite_handle_exec(kite_handle_t *client, char **json, int n,
 static int kite_handle_assign_socket(kite_handle_t *client, int *sockfd,
                                      int nsocket, char *errmsg, int errlen) {
   struct event *ev;
-  struct timeval fivesec = {5, 0};
+  //struct timeval fivesec = {5, 0};
 
   client->nevt = nsocket;
   client->evcxt = (kite_evcxt_t *)malloc(sizeof(kite_evcxt_t) * nsocket);
@@ -196,10 +196,11 @@ static int kite_handle_assign_socket(kite_handle_t *client, int *sockfd,
   for (int i = 0; i < client->nevt; i++) {
     client->evcxt[i].ss = sockstream_assign(sockfd[i]);
     client->evcxt[i].arg = client;
-    ev = event_new(client->evbase, sockfd[i], EV_TIMEOUT | EV_READ | EV_PERSIST,
+    ev = event_new(client->evbase, sockfd[i], /* EV_TIMEOUT | */ EV_READ | EV_PERSIST,
                    kite_evcb, &client->evcxt[i]);
     client->evcxt[i].ev = ev;
-    event_add(ev, &fivesec);
+    //event_add(ev, &fivesec);
+    event_add(ev, NULL);
   }
   return 0;
 }
