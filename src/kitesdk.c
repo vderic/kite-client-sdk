@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <strings.h>
 
 typedef struct listcell_t listcell_t;
 struct listcell_t {
@@ -318,6 +319,46 @@ static void setup_sql(xstringbuffer_t *sbuf, const char *sql) {
   xstringbuffer_escape_json(sbuf, sql);
 }
 
+static void setup_filespec(xstringbuffer_t *sbuf, kite_filespec_t *fs) {
+  char value[2];
+  memset(value, 0, sizeof(value));
+
+  xstringbuffer_append_string(sbuf, "\"filespec\": ");
+  xstringbuffer_append(sbuf, '{');
+  xstringbuffer_append_string(sbuf, "\"fmt\": ");
+  xstringbuffer_escape_json(sbuf, fs->fmt);
+
+  if (strcasecmp(fs->fmt, "csv") == 0) {
+    xstringbuffer_append(sbuf, ',');
+    xstringbuffer_append_string(sbuf, "\"csvspec\": ");
+    xstringbuffer_append(sbuf, '{');
+    xstringbuffer_append_string(sbuf, "\"delim\": ");
+    value[0] = fs->u.csv.delim;
+    xstringbuffer_escape_json(sbuf, value);
+    xstringbuffer_append(sbuf, ',');
+    xstringbuffer_append_string(sbuf, "\"quote\": ");
+    value[0] = fs->u.csv.quote;
+    xstringbuffer_escape_json(sbuf, value);
+    xstringbuffer_append(sbuf, ',');
+    xstringbuffer_append_string(sbuf, "\"escape\": ");
+    value[0] = fs->u.csv.escape;
+    xstringbuffer_escape_json(sbuf, value);
+    xstringbuffer_append(sbuf, ',');
+    xstringbuffer_append_string(sbuf, "\"header_line\": ");
+    if (fs->u.csv.header_line == 0) {
+      xstringbuffer_append_string(sbuf, "false");
+    } else {
+      xstringbuffer_append_string(sbuf, "true");
+    }
+    xstringbuffer_append(sbuf, ',');
+    xstringbuffer_append_string(sbuf, "\"nullstr\": ");
+    xstringbuffer_escape_json(sbuf, fs->u.csv.nullstr);
+
+    xstringbuffer_append(sbuf, '}');
+  }
+  xstringbuffer_append(sbuf, '}');
+}
+
 static int setup_schema(xstringbuffer_t *sbuf, char *schema, char *errmsg,
                         int errlen) {
 
@@ -438,7 +479,7 @@ static int setup_address(char *addr, char ***addrs, int *naddr, char *errmsg,
 }
 
 static char *setup_json(const char *schema_json, const char *sql, int fragid,
-                        int fragcnt) {
+                        int fragcnt, kite_filespec_t *fs) {
   char *ret = 0;
   xstringbuffer_t *sbuf = xstringbuffer_new();
   xstringbuffer_append(sbuf, '{');
@@ -447,6 +488,8 @@ static char *setup_json(const char *schema_json, const char *sql, int fragid,
   xstringbuffer_append_string(sbuf, schema_json);
   xstringbuffer_append(sbuf, ',');
   setup_fragment(sbuf, fragid, fragcnt);
+  xstringbuffer_append(sbuf, ',');
+  setup_filespec(sbuf, fs);
   xstringbuffer_append(sbuf, '}');
   ret = xstringbuffer_to_string(sbuf);
   xstringbuffer_release(sbuf);
@@ -455,7 +498,8 @@ static char *setup_json(const char *schema_json, const char *sql, int fragid,
 }
 
 kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
-                           int fragid, int fragcnt, char *errmsg, int errlen) {
+                           int fragid, int fragcnt, kite_filespec_t *fs,
+                           char *errmsg, int errlen) {
 
   int nhost = 0;
   int naddr = 0;
@@ -486,7 +530,7 @@ kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
     for (int i = 0; i < nhost; i++) {
       int n = i % naddr;
       hosts[i] = addrs[n];
-      jsons[i] = setup_json(schema_json, sql, i, fragcnt);
+      jsons[i] = setup_json(schema_json, sql, i, fragcnt, fs);
     }
 
   } else {
@@ -495,7 +539,7 @@ kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
     hosts = malloc(sizeof(char *) * nhost);
     jsons = malloc(sizeof(char *) * nhost);
     hosts[0] = addrs[n];
-    jsons[0] = setup_json(schema_json, sql, fragid, fragcnt);
+    jsons[0] = setup_json(schema_json, sql, fragid, fragcnt, fs);
   }
 
   // connect socket

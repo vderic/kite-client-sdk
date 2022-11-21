@@ -3,7 +3,24 @@
 
 #include "xrg.h"
 
+#define MAX_FILESPEC_FMT_LEN 8
+#define MAX_CSV_NULLSTR_LEN 8
+
 typedef struct kite_handle_t kite_handle_t;
+
+typedef struct kite_filespec_t {
+  char fmt[MAX_FILESPEC_FMT_LEN];
+
+  union {
+    struct {
+      char delim;
+      char quote;
+      char escape;
+      int8_t header_line;
+      char nullstr[MAX_CSV_NULLSTR_LEN];
+    } csv;
+  } u;
+} kite_filespec_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +34,8 @@ extern "C" {
  * fragcnt-1. fragcnt: max number of fragments.
  */
 kite_handle_t *kite_submit(char *addr, const char *schema, const char *sql,
-                           int fragid, int fragcnt, char *errmsg, int errlen);
+                           int fragid, int fragcnt, kite_filespec_t *fs,
+                           char *errmsg, int errlen);
 
 /**
  * Get the next row from kite server.

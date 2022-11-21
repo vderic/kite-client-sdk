@@ -69,7 +69,15 @@ int main(int argc, const char *argv[]) {
     return 1;
   }
 
-  hdl = kite_submit(host, schema, sql, fragid, fragcnt, errmsg, errlen);
+  kite_filespec_t fs;
+  strcpy(fs.fmt, "csv");
+  fs.u.csv.delim = ',';
+  fs.u.csv.quote = '"';
+  fs.u.csv.escape = '"';
+  fs.u.csv.header_line = 0;
+  *fs.u.csv.nullstr = 0;
+
+  hdl = kite_submit(host, schema, sql, fragid, fragcnt, &fs, errmsg, errlen);
   if (!hdl) {
     fprintf(stderr, "kite_submit failed. %s", errmsg);
     return 1;
@@ -82,9 +90,9 @@ int main(int argc, const char *argv[]) {
     if (e == 0) {
       // data here
       if (iter == NULL) {
-      	// no more row
-	      fprintf(stderr, "EOF nrow = %d\n", nrow);
-	      break;
+        // no more row
+        fprintf(stderr, "EOF nrow = %d\n", nrow);
+        break;
       }
 
       nrow++;
