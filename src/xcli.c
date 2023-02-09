@@ -96,7 +96,9 @@ int main(int argc, const char *argv[]) {
         break;
       }
 
-      xrg_vector_print(stderr, iter->nvec, (const xrg_vector_t **) iter->vec, '|', "NULL", errbuf, sizeof(errbuf));
+      if (iter->curr == 0) {
+      	xrg_vector_print(stdout, iter->nvec, (const xrg_vector_t **) iter->vec, '|', "NULL", errbuf, sizeof(errbuf));
+      }
 
       nrow++;
     } else {
