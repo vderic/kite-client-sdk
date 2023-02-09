@@ -86,7 +86,6 @@ int main(int argc, const char *argv[]) {
   e = 0;
   while (e == 0) {
     xrg_iter_t *iter = 0;
-    char errbuf[1024];
     e = kite_next_row(hdl, &iter, errmsg, errlen);
     if (e == 0) {
       // data here
@@ -97,6 +96,7 @@ int main(int argc, const char *argv[]) {
       }
 
       if (iter->curr == 0) {
+        char errbuf[1024];
       	xrg_vector_print(stdout, iter->nvec, (const xrg_vector_t **) iter->vec, '|', "NULL", errbuf, sizeof(errbuf));
       }
 
