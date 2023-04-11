@@ -1,5 +1,6 @@
 package com.vitessedata.kite.sdk;
 
+import com.vitessedata.xrg.format.LogicalTypes;
 import org.json.*;
 
 public class Request {
@@ -50,6 +51,9 @@ public class Request {
 
         for (int i = 0; i < lines.length; i++) {
             String[] column = lines[i].split(":", 4);
+            if (!LogicalTypes.TYPES.contains(column[1])) {
+                throw new IllegalArgumentException("type is invalid");
+            }
             if (column[1].equalsIgnoreCase("decimal")) {
                 array.put(new JSONObject().put("name", column[0]).put("type", column[1])
                         .put("precision", Integer.parseInt(column[2])).put("scale", Integer.parseInt(column[3])));
@@ -104,7 +108,7 @@ public class Request {
 
     public static void main(String[] args) {
 
-        String schema = "orderid:int64:0:0\ncost:fp64:0:0\ntotal:decimal:28:3";
+        String schema = "orderid:int64:0:0\ncost:double:0:0\ntotal:decimal:28:3";
         String sql = "select * from lineitem*";
         Request req = new Request().schema(schema).sql(sql).fragment(0, 1)
                 .format(new CsvFileSpec().nullstr("NULL").delim(':'));
