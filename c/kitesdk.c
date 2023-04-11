@@ -359,6 +359,17 @@ static void setup_filespec(xstringbuffer_t *sbuf, kite_filespec_t *fs) {
   xstringbuffer_append(sbuf, '}');
 }
 
+static int is_valid_type(char *type) {
+  char *valid_types[] = {"int8", "int16", "int32", "int64", "float", "double", "decimal", "string", "date", "time", "timestamp", "interval"};
+
+  for (int i = 0 ; i < 12 ; i++) {
+    if (strcmp(type, valid_types[i]) == 0) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static int setup_schema(xstringbuffer_t *sbuf, char *schema, char *errmsg,
                         int errlen) {
 
@@ -401,6 +412,11 @@ static int setup_schema(xstringbuffer_t *sbuf, char *schema, char *errmsg,
       scale = 0;
     }
 
+    if (! is_valid_type(type)) {
+        snprintf(errmsg, errlen, "invalid type error");
+        return 1;
+    }
+        
     if (i > 0) {
       xstringbuffer_append(sbuf, ',');
     }
