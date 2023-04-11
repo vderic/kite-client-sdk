@@ -17,9 +17,9 @@ $(BUILDDIRS):
 
 install: all
 	install -d ${prefix} ${prefix}/bin ${prefix}/include ${prefix}/lib
-	install -m 0644 -t ${prefix}/include src/kitesdk.h
+	install -m 0644 -t ${prefix}/include c/kitesdk.h
 	cp -r ext/include/event2 ext/include/ev*.h ext/include/xrg.h ${prefix}/include
-	install -m 0644 -t ${prefix}/lib ext/lib/libevent*.a ext/lib/libxrg.a ext/lib/libsproto.a src/libkitesdk.a
+	install -m 0644 -t ${prefix}/lib ext/lib/libevent*.a ext/lib/libxrg.a ext/lib/libsproto.a c/libkitesdk.a
 
 format: $(FORMATDIRS)
 
