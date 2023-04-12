@@ -51,14 +51,29 @@ public class Request {
 
         for (int i = 0; i < lines.length; i++) {
             String[] column = lines[i].split(":", 4);
-            if (!LogicalTypes.TYPES.contains(column[1])) {
+            if (column.length != 2 && column.length != 4) {
+                throw new IllegalArgumentException("schema format error");
+            }
+
+            String cname = column[0];
+            String type = column[1];
+
+            if (!LogicalTypes.TYPES.contains(type)) {
                 throw new IllegalArgumentException("type is invalid");
             }
-            if (column[1].equalsIgnoreCase("decimal")) {
-                array.put(new JSONObject().put("name", column[0]).put("type", column[1])
-                        .put("precision", Integer.parseInt(column[2])).put("scale", Integer.parseInt(column[3])));
+
+            if (type.equals("decimal")) {
+                if (column.length != 4) {
+                    throw new IllegalArgumentException(
+                            "schema format error. decimal needs name, type, precision and scale.");
+                }
+
+                int precision = Integer.parseInt(column[2]);
+                int scale = Integer.parseInt(column[3]);
+                array.put(new JSONObject().put("name", cname).put("type", type).put("precision", precision).put("scale",
+                        scale));
             } else {
-                array.put(new JSONObject().put("name", column[0]).put("type", column[1]));
+                array.put(new JSONObject().put("name", cname).put("type", type));
             }
         }
 
