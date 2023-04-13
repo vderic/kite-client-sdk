@@ -31,42 +31,34 @@ For C, read the file`c/xcli.c` for usage.
 For Java, read the `java/src/main/java/com/vitessedata/kite/sdk/KiteCmd.java` for usage.
 
 ```
-        KiteConnection kite = null;
-        try {
-            kite = new KiteConnection();
-            kite.host(addr).schema(schemafn).sql(sqlfn).format(new CsvFileSpec()).fragment(0, 2);
-            kite.submit();
-            XrgIterator iter = null;
+    KiteConnection kite = null;
+    try {
+        kite = new KiteConnection();
+        kite.host(addr).schema(schemafn).sql(sqlfn).format(new CsvFileSpec()).fragment(0, 2);
+        kite.submit();
+        XrgIterator iter = null;
 
-            BigDecimal bigdec = BigDecimal.ZERO;
-            BigInteger bigint = BigInteger.ZERO;
-
-            while ((iter = kite.next()) != null) {
-                Object[] objs = iter.getValues();
-                for (int i = 0; i < objs.length; i++) {
-                    if (i > 0) {
-                        System.out.print("|");
-                    }
-                    System.out.print(objs[i].toString());
-                    if (objs[i] instanceof BigDecimal) {
-                        bigdec = bigdec.add((BigDecimal) objs[i]);
-                    } else if (objs[i] instanceof BigInteger) {
-                        bigint = bigint.add((BigInteger) objs[i]);
-                    }
+        while ((iter = kite.next()) != null) {
+            Object[] objs = iter.getValues();
+            for (int i = 0; i < objs.length; i++) {
+                if (i > 0) {
+                    System.out.print("|");
                 }
-                System.out.println();
+                System.out.print(objs[i].toString());
+            }
+            System.out.println();
+        }
+    } catch (IOException ex) {
+        System.err.println(ex);
+    } finally {
+        try {
+            if (kite != null) {
+                kite.release();
             }
         } catch (IOException ex) {
-            System.err.println(ex);
-        } finally {
-            try {
-                if (kite != null) {
-                    kite.release();
-                }
-            } catch (IOException ex) {
-                ;
-            }
+            ;
         }
+    }
 ```
 
 
