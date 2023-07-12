@@ -1,5 +1,5 @@
 TOPDIR = ..
-XRGTAR = xrg-r220920.zip
+XRGTAR = xrg-r230712.zip
 XRGDIR = $(XRGTAR:.zip=)
 SOCKSTREAMTAR = sockstream-r220819.zip
 SOCKSTREAMDIR = $(SOCKSTREAMTAR:.zip=)
