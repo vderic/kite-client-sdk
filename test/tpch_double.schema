@@ -2,10 +2,10 @@ l_orderkey:int64
 l_partkey:int64
 l_suppkey:int64
 l_linenumber:int64
-l_quantity:fp64
-l_extendedprice:fp64
-l_discount:fp64
-l_tax:fp64
+l_quantity:double
+l_extendedprice:double
+l_discount:double
+l_tax:double
 l_returnflag:string
 l_linestatus:string
 l_shipdate:date
