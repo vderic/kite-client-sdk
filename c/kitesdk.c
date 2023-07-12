@@ -360,9 +360,11 @@ static void setup_filespec(xstringbuffer_t *sbuf, kite_filespec_t *fs) {
 }
 
 static int is_valid_type(char *type) {
-  char *valid_types[] = {"int8", "int16", "int32", "int64", "float", "double", "decimal", "string", "date", "time", "timestamp", "interval"};
+  char *valid_types[] = {"int8", "int16", "int32", "int64", "float", "double", "decimal", "string", "date", "time", "timestamp", "interval",
+  "int8[]", "int16[]", "int32[]", "int64[]", "float[]", "double[]", "decimal[]", "string[]", "date[]", "time[]", "timestamp[]", "interval[]"};
 
-  for (int i = 0 ; i < 12 ; i++) {
+  int ntype = sizeof(valid_types) / sizeof(char *);
+  for (int i = 0 ; i < ntype ; i++) {
     if (strcmp(type, valid_types[i]) == 0) {
       return 1;
     }
