@@ -100,15 +100,15 @@ int socket_connect(char *host) {
   return sockfd;
 }
 
-int kite_exec(sockstream_t *ss, const char *json) {
+int kite_exec(sockstream_t *ss, const char *json, char *errmsg, int errlen) {
 
   if (sockstream_send(ss, "KIT1", 0, 0)) {
-    fprintf(stderr, "%s", sockstream_errmsg(ss));
+    snprintf(errmsg, errlen, "KIT1: %s", sockstream_errmsg(ss));
     return 1;
   }
 
   if (sockstream_send(ss, "JSON", strlen(json), json)) {
-    fprintf(stderr, "%s", sockstream_errmsg(ss));
+    snprintf(errmsg, errlen, "JSON: %s", sockstream_errmsg(ss));
     return 2;
   }
 

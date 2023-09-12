@@ -11,8 +11,8 @@
 #include <event2/event.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <strings.h>
+#include <unistd.h>
 
 typedef struct listcell_t listcell_t;
 struct listcell_t {
@@ -163,15 +163,14 @@ static int kite_handle_exec(kite_handle_t *client, char **json, int n,
   int e = 0;
 
   if (n != client->nevt) {
-    fprintf(
-        stderr,
+    snprintf(
+        errmsg, errlen,
         "number of json requests do not match with number of connections\n");
     return 1;
   }
   for (int i = 0; i < client->nevt; i++) {
-    e = kite_exec(client->evcxt[i].ss, json[i]);
+    e = kite_exec(client->evcxt[i].ss, json[i], errmsg, errlen);
     if (e) {
-      snprintf(errmsg, errlen, "kite_exec error");
       return 1;
     }
   }
@@ -360,11 +359,15 @@ static void setup_filespec(xstringbuffer_t *sbuf, kite_filespec_t *fs) {
 }
 
 static int is_valid_type(char *type) {
-  char *valid_types[] = {"int8", "int16", "int32", "int64", "float", "double", "decimal", "string", "date", "time", "timestamp", "interval",
-  "int8[]", "int16[]", "int32[]", "int64[]", "float[]", "double[]", "decimal[]", "string[]", "date[]", "time[]", "timestamp[]", "interval[]"};
+  char *valid_types[] = {"int8",    "int16",    "int32",       "int64",
+                         "float",   "double",   "decimal",     "string",
+                         "date",    "time",     "timestamp",   "interval",
+                         "int8[]",  "int16[]",  "int32[]",     "int64[]",
+                         "float[]", "double[]", "decimal[]",   "string[]",
+                         "date[]",  "time[]",   "timestamp[]", "interval[]"};
 
   int ntype = sizeof(valid_types) / sizeof(char *);
-  for (int i = 0 ; i < ntype ; i++) {
+  for (int i = 0; i < ntype; i++) {
     if (strcmp(type, valid_types[i]) == 0) {
       return 1;
     }
@@ -414,11 +417,11 @@ static int setup_schema(xstringbuffer_t *sbuf, char *schema, char *errmsg,
       scale = 0;
     }
 
-    if (! is_valid_type(type)) {
-        snprintf(errmsg, errlen, "invalid type error");
-        return 1;
+    if (!is_valid_type(type)) {
+      snprintf(errmsg, errlen, "invalid type error");
+      return 1;
     }
-        
+
     if (i > 0) {
       xstringbuffer_append(sbuf, ',');
     }

@@ -97,7 +97,8 @@ int main(int argc, const char *argv[]) {
 
       if (iter->curr == 0) {
         char errbuf[1024];
-      	xrg_vector_print(stdout, iter->nvec, (const xrg_vector_t **) iter->vec, '|', "NULL", errbuf, sizeof(errbuf));
+        xrg_vector_print(stdout, iter->nvec, (const xrg_vector_t **)iter->vec,
+                         '|', "NULL", errbuf, sizeof(errbuf));
       }
 
       nrow++;

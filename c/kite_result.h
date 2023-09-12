@@ -20,7 +20,7 @@ typedef struct kite_result_t {
 
 int socket_connect(char *host);
 
-int kite_exec(sockstream_t *ss, const char *json);
+int kite_exec(sockstream_t *ss, const char *json, char *errmsg, int errlen);
 
 kite_result_t *kite_get_result(sockstream_t *ss);
 
