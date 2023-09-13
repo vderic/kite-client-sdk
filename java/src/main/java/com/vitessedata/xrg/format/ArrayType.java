@@ -88,14 +88,15 @@ public class ArrayType {
         }
 
         // skip to the end of header
-        bbuf.get(hdrsz - 1);
+        bbuf.position(hdrsz);
         ByteBuffer databuf = bbuf.slice();
+        databuf.order(ByteOrder.LITTLE_ENDIAN);
 
         short ptyp = header.getPhysicalType();
 
         switch (ptyp) {
         case PhysicalTypes.INT8:
-            readArray(databuf.asIntBuffer());
+            readInt8Array(databuf);
             break;
         case PhysicalTypes.INT16:
             readArray(databuf.asShortBuffer());
@@ -140,7 +141,7 @@ public class ArrayType {
     }
 
     public int getOverHeadWithNulls(int ndims, int nitems) {
-        return Util.xrg_align(8, ArrayHeader.HEADER_SIZE + 2 * 4 * ndims + (nitems + 7) / 8);
+        return Util.xrg_align(8, ArrayHeader.HEADER_SIZE + 2 * 4 * ndims + ((nitems + 7) / 8));
     }
 
     public boolean isnull(int offset) {
@@ -228,6 +229,20 @@ public class ArrayType {
                 list.add(null);
             } else {
                 list.add(new Short(databuf.get()));
+            }
+        }
+    }
+
+    private void readInt8Array(ByteBuffer databuf) {
+        int ndim = header.getNDim();
+        int nitems = getNItems(ndim, dims);
+        list = new ArrayList(nitems);
+
+        for (int i = 0; i < nitems; i++) {
+            if (isnull(i)) {
+                list.add(null);
+            } else {
+                list.add(new Byte(databuf.get()));
             }
         }
     }
