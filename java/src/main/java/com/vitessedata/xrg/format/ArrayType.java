@@ -1,5 +1,16 @@
 package com.vitessedata.xrg.format;
 
+import java.lang.Byte;
+import java.lang.String;
+import java.lang.Integer;
+import java.lang.Long;
+import java.lang.Double;
+import java.lang.Float;
+import java.lang.Short;
+import java.util.Vector;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Date;
 import java.lang.RuntimeException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -14,6 +25,8 @@ import java.util.ArrayList;
 
 public class ArrayType {
 
+    private int precision;
+    private int scale;
     private byte[] buffer;
     private ArrayHeader header;
     private int[] dims;
@@ -25,6 +38,8 @@ public class ArrayType {
 
     public ArrayType(byte[] b, int precision, int scale) {
 
+        this.precision = precision;
+        this.scale = scale;
         init(b);
     }
 
@@ -77,7 +92,9 @@ public class ArrayType {
         bbuf.get(hdrsz - 1);
         ByteBuffer databuf = bbuf.slice();
 
-        switch (header.getPhysicalType()) {
+        short ptyp = header.getPhysicalType();
+
+        switch (ptyp) {
         case PhysicalTypes.INT8:
             readArray(databuf.asIntBuffer());
             break;
@@ -91,7 +108,7 @@ public class ArrayType {
             readArray(databuf.asLongBuffer());
             break;
         case PhysicalTypes.INT128:
-            readArray(databuf);
+            readInt128Array(databuf);
             break;
         case PhysicalTypes.FP32:
             readArray(databuf.asFloatBuffer());
@@ -134,16 +151,62 @@ public class ArrayType {
         return list.toArray();
     }
 
-    private void readArray(ByteBuffer databuf) {
+    private void readInt128Array(ByteBuffer databuf) {
+        short ltyp = header.getLogicalType();
         int ndim = header.getNDim();
         int nitems = getNItems(ndim, dims);
         list = new ArrayList(nitems);
+        int itemsz = 16;
 
         for (int i = 0; i < nitems; i++) {
             if (isnull(i)) {
                 list.add(null);
             } else {
-                list.add(databuf.get());
+                byte[] ba = new byte[itemsz];
+                databuf.get(ba);
+                /*
+                 * xrg return array of int64 (little endian) [low, high] but BigDecimal requires [high, low] in Big
+                 * endian
+                 */
+                ByteBuffer bb = ByteBuffer.wrap(ba);
+                bb.order(ByteOrder.LITTLE_ENDIAN);
+                long low = bb.getLong();
+                long high = bb.getLong();
+                bb.order(ByteOrder.BIG_ENDIAN);
+                bb.rewind();
+                bb.putLong(high);
+                bb.putLong(low);
+                if (ltyp == LogicalTypes.DECIMAL) {
+                    list.add(new BigDecimal(new BigInteger(bb.array()), scale));
+                } else {
+                    // spark only support BigDecimal with scale 0
+                    list.add(new BigInteger(bb.array()));
+                }
+            }
+        }
+    }
+
+    private void readArray(ByteBuffer databuf) {
+        int ndim = header.getNDim();
+        int nitems = getNItems(ndim, dims);
+        list = new ArrayList(nitems);
+
+        if (header.getLogicalType() != LogicalTypes.STRING) {
+            throw new RuntimeException("bytea is not string");
+        }
+
+        for (int i = 0; i < nitems; i++) {
+            if (isnull(i)) {
+                list.add(null);
+            } else {
+                int basz = databuf.getInt();
+                if (basz == 0) {
+                    list.add(new String(""));
+                } else {
+                    byte[] ba = new byte[basz];
+                    databuf.get(ba);
+                    list.add(new String(ba));
+                }
             }
         }
     }
@@ -157,7 +220,7 @@ public class ArrayType {
             if (isnull(i)) {
                 list.add(null);
             } else {
-                list.add(databuf.get());
+                list.add(new Short(databuf.get()));
             }
         }
     }
@@ -171,7 +234,7 @@ public class ArrayType {
             if (isnull(i)) {
                 list.add(null);
             } else {
-                list.add(databuf.get());
+                list.add(new Integer(databuf.get()));
             }
         }
     }
@@ -179,13 +242,19 @@ public class ArrayType {
     private void readArray(LongBuffer databuf) {
         int ndim = header.getNDim();
         int nitems = getNItems(ndim, dims);
+        short ltyp = header.getLogicalType();
         list = new ArrayList(nitems);
 
         for (int i = 0; i < nitems; i++) {
             if (isnull(i)) {
                 list.add(null);
             } else {
-                list.add(databuf.get());
+                long int64 = databuf.get();
+                if (ltyp == LogicalTypes.DECIMAL) {
+                    list.add(new BigDecimal(int64).movePointLeft(scale));
+                } else {
+                    list.add(new Long(int64));
+                }
             }
         }
     }
@@ -199,7 +268,7 @@ public class ArrayType {
             if (isnull(i)) {
                 list.add(null);
             } else {
-                list.add(databuf.get());
+                list.add(new Float(databuf.get()));
             }
         }
     }
@@ -213,7 +282,7 @@ public class ArrayType {
             if (isnull(i)) {
                 list.add(null);
             } else {
-                list.add(databuf.get());
+                list.add(new Double(databuf.get()));
             }
         }
     }

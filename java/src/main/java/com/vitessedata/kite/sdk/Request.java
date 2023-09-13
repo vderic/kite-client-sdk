@@ -62,7 +62,7 @@ public class Request {
                 throw new IllegalArgumentException("type is invalid");
             }
 
-            if (type.equals("decimal")) {
+            if (type.equals("decimal") || type.equals("decimal[]")) {
                 if (column.length != 4) {
                     throw new IllegalArgumentException(
                             "schema format error. decimal needs name, type, precision and scale.");

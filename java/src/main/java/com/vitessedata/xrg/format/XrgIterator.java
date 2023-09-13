@@ -101,6 +101,8 @@ public class XrgIterator {
                 data.get(ba);
                 if (ltyp == LogicalTypes.STRING) {
                     values[i] = new String(ba);
+                } else if (ltyp == LogicalTypes.ARRAY) {
+                    values[i] = new ArrayType(ba, precision, scale);
                 } else {
                     values[i] = ba;
                 }
