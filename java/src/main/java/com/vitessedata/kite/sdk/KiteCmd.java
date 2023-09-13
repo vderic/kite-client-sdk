@@ -122,11 +122,33 @@ public class KiteCmd {
                     if (i > 0) {
                         System.out.print("|");
                     }
-                    System.out.print(objs[i].toString());
-                    if (objs[i] instanceof BigDecimal) {
-                        bigdec = bigdec.add((BigDecimal) objs[i]);
-                    } else if (objs[i] instanceof BigInteger) {
-                        bigint = bigint.add((BigInteger) objs[i]);
+                    if (objs[i] == null) {
+                        System.out.print("NULL");
+                        continue;
+                    }
+
+                    if (objs[i] instanceof ArrayType) {
+                        ArrayType arr = (ArrayType) objs[i];
+                        Object[] values = arr.toArray();
+                        System.out.print("{");
+                        for (int j = 0; j < values.length; j++) {
+                            if (j > 0) {
+                                System.out.print(",");
+                            }
+                            if (values[j] == null) {
+                                System.out.print("NULL");
+                            } else {
+                                System.out.print(values[j].toString());
+                            }
+                        }
+                        System.out.print("}");
+                    } else {
+                        System.out.print(objs[i].toString());
+                        if (objs[i] instanceof BigDecimal) {
+                            bigdec = bigdec.add((BigDecimal) objs[i]);
+                        } else if (objs[i] instanceof BigInteger) {
+                            bigint = bigint.add((BigInteger) objs[i]);
+                        }
                     }
                 }
                 System.out.println();
