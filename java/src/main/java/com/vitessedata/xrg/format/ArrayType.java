@@ -124,6 +124,14 @@ public class ArrayType {
         }
     }
 
+    public short getPhysicalType() {
+        return header.getPhysicalType();
+    }
+
+    public short getLogicalType() {
+        return header.getLogicalType();
+    }
+
     public int getNItems(int ndims, int[] dims) {
         return (ndims == 0 ? 0 : dims[0]);
     }
