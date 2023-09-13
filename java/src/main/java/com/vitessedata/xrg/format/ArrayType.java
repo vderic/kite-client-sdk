@@ -25,16 +25,15 @@ import java.util.ArrayList;
 
 public class ArrayType {
 
-    private int precision;
-    private int scale;
-    private byte[] buffer;
-    private ArrayHeader header;
-    private int[] dims;
-    private int[] lbs;
-    private byte[] bitmap;
-    private byte[] data;
-
-    private ArrayList list;
+    private int precision = 0;
+    private int scale = 0;
+    private byte[] buffer = null;
+    private ArrayHeader header = null;
+    private int[] dims = null;
+    private int[] lbs = null;
+    private byte[] bitmap = null;
+    private byte[] data = null;
+    private ArrayList list = null;
 
     public ArrayType(byte[] b, int precision, int scale) {
 
