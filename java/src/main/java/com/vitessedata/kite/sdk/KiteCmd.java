@@ -118,11 +118,14 @@ public class KiteCmd {
 
             while ((iter = kite.next()) != null) {
                 Object[] objs = iter.getValues();
+                byte[] flags = iter.getFlags();
+
                 for (int i = 0; i < objs.length; i++) {
                     if (i > 0) {
                         System.out.print("|");
                     }
-                    if (objs[i] == null) {
+
+                    if (flags[i] != 0 || objs[i] == null) {
                         System.out.print("NULL");
                         continue;
                     }
