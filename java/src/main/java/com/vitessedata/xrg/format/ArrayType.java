@@ -2,6 +2,11 @@ package com.vitessedata.xrg.format;
 
 import java.lang.RuntimeException;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.FloatBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.ShortBuffer;
+import java.nio.LongBuffer;
 import java.nio.ByteOrder;
 import java.io.IOException;
 import java.io.ByteArrayInputStream;
@@ -69,9 +74,37 @@ public class ArrayType {
         }
 
         // skip to the end of header
-        bbuf.get(hdrsz);
+        bbuf.get(hdrsz - 1);
         ByteBuffer databuf = bbuf.slice();
 
+        switch (header.getPhysicalType()) {
+        case PhysicalTypes.INT8:
+            readArray(databuf.asIntBuffer());
+            break;
+        case PhysicalTypes.INT16:
+            readArray(databuf.asShortBuffer());
+            break;
+        case PhysicalTypes.INT32:
+            readArray(databuf.asIntBuffer());
+            break;
+        case PhysicalTypes.INT64:
+            readArray(databuf.asLongBuffer());
+            break;
+        case PhysicalTypes.INT128:
+            readArray(databuf);
+            break;
+        case PhysicalTypes.FP32:
+            readArray(databuf.asFloatBuffer());
+            break;
+        case PhysicalTypes.FP64:
+            readArray(databuf.asDoubleBuffer());
+            break;
+        case PhysicalTypes.BYTEA:
+            readArray(databuf);
+            break;
+        default:
+            throw new RuntimeException("array type not supported");
+        }
     }
 
     public int getNItems(int ndims, int[] dims) {
@@ -99,5 +132,89 @@ public class ArrayType {
 
     public Object[] toArray() {
         return list.toArray();
+    }
+
+    private void readArray(ByteBuffer databuf) {
+        int ndim = header.getNDim();
+        int nitems = getNItems(ndim, dims);
+        list = new ArrayList(nitems);
+
+        for (int i = 0; i < nitems; i++) {
+            if (isnull(i)) {
+                list.add(null);
+            } else {
+                list.add(databuf.get());
+            }
+        }
+    }
+
+    private void readArray(ShortBuffer databuf) {
+        int ndim = header.getNDim();
+        int nitems = getNItems(ndim, dims);
+        list = new ArrayList(nitems);
+
+        for (int i = 0; i < nitems; i++) {
+            if (isnull(i)) {
+                list.add(null);
+            } else {
+                list.add(databuf.get());
+            }
+        }
+    }
+
+    private void readArray(IntBuffer databuf) {
+        int ndim = header.getNDim();
+        int nitems = getNItems(ndim, dims);
+        list = new ArrayList(nitems);
+
+        for (int i = 0; i < nitems; i++) {
+            if (isnull(i)) {
+                list.add(null);
+            } else {
+                list.add(databuf.get());
+            }
+        }
+    }
+
+    private void readArray(LongBuffer databuf) {
+        int ndim = header.getNDim();
+        int nitems = getNItems(ndim, dims);
+        list = new ArrayList(nitems);
+
+        for (int i = 0; i < nitems; i++) {
+            if (isnull(i)) {
+                list.add(null);
+            } else {
+                list.add(databuf.get());
+            }
+        }
+    }
+
+    private void readArray(FloatBuffer databuf) {
+        int ndim = header.getNDim();
+        int nitems = getNItems(ndim, dims);
+        list = new ArrayList(nitems);
+
+        for (int i = 0; i < nitems; i++) {
+            if (isnull(i)) {
+                list.add(null);
+            } else {
+                list.add(databuf.get());
+            }
+        }
+    }
+
+    private void readArray(DoubleBuffer databuf) {
+        int ndim = header.getNDim();
+        int nitems = getNItems(ndim, dims);
+        list = new ArrayList(nitems);
+
+        for (int i = 0; i < nitems; i++) {
+            if (isnull(i)) {
+                list.add(null);
+            } else {
+                list.add(databuf.get());
+            }
+        }
     }
 }
