@@ -82,7 +82,7 @@ public class KiteCmd {
 
         kite = new KiteConnection();
 
-        kite.host(addr).sql(sql).schema(schema).format(new CsvFileSpec()).fragment(0, 1);
+        kite.host(addr).sql(sql).schema(schema).format(new ParquetFileSpec()).fragment(0, 1);
 
         return kite;
 
