@@ -111,24 +111,7 @@ public class XrgIterator {
             case PhysicalTypes.INT128: {
                 byte[] ba = new byte[itemsz];
                 data.get(ba);
-                /*
-                 * xrg return array of int64 (little endian) [low, high] but BigDecimal requires [high, low] in Big
-                 * endian
-                 */
-                ByteBuffer bb = ByteBuffer.wrap(ba);
-                bb.order(ByteOrder.LITTLE_ENDIAN);
-                long low = bb.getLong();
-                long high = bb.getLong();
-                bb.order(ByteOrder.BIG_ENDIAN);
-                bb.rewind();
-                bb.putLong(high);
-                bb.putLong(low);
-                if (ltyp == LogicalTypes.DECIMAL) {
-                    values[i] = new BigDecimal(new BigInteger(bb.array()), scale);
-                } else {
-                    // spark only support BigDecimal with scale 0
-                    values[i] = new BigInteger(bb.array());
-                }
+                values[i] = ba;
             }
                 break;
             }
@@ -145,6 +128,10 @@ public class XrgIterator {
 
     public byte[] getFlags() {
         return flags;
+    }
+
+    public XrgVectorHeader[] getAttributes() {
+        return attrs;
     }
 
 }
