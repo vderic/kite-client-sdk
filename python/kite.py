@@ -184,7 +184,7 @@ class KiteClient:
 		try:
 			print(addr)
 			sock.connect(addr)
-			sock.setblocking(False)
+			#sock.setblocking(False)
 		except OSError as msg:
 			print(msg)
 			sock.close()
@@ -192,9 +192,18 @@ class KiteClient:
 		return sock
 	
 
-	def read(self, ss):
+	def read(self, ss, mask):
 		print("read callback")
-		return
+		msg = None
+		msg = ss.recv()
+		print("type= ", msg.msgty, " , len=", msg.msglen)
+
+		if msg.msgty == b'BYE_':
+			print("BYE BYE")
+			ss.close()
+			return None
+
+		return msg
 
 	def submit(self):
 
@@ -238,10 +247,10 @@ class KiteClient:
 	
 	
 	def get_next(self):
-		events = self.sel.select(None)
+		events = self.selectors.select(None)
 		for key, mask in events:
 			callback = key.data
-			callback(key.fileobj, mask)
+			return callback(key.fileobj, mask)
 
 
 	def close(self):
@@ -258,10 +267,17 @@ if __name__ == "__main__":
 
 	kite = KiteClient()
 	try:
-		kite.host(hosts).sql(sql).schema(schema).filespec(CsvFileSpec()).fragment(1, 2).submit()
+		kite.host(hosts).sql(sql).schema(schema).filespec(CsvFileSpec()).fragment(-1, 2).submit()
+
+		while True:
+			msg = kite.get_next()
+			if msg is None:
+				break
+				
 	except OSError as msg:
 		print(msg)
 
+	
 	kite.close()
 	
 

@@ -55,7 +55,8 @@ class SockStream:
 		msglen = msgsz
 
 		while p < msgsz:
-			n = self.socket.recv_into(msg[p:], msglen)
+			n = self.socket.recv_into(memoryview(msg)[p:], msglen)
+			print(n, " readed", msg)
 			if n <= 0:
 				raise Exception("scoket unexpected EOF")
 
@@ -64,6 +65,7 @@ class SockStream:
 				msglen -= n
 				continue
 
+		print("recv", msg)
 
 	def send(self, msgty, msg):
 		msgsz = 0
@@ -80,12 +82,11 @@ class SockStream:
 	def recv(self):
 		meta = bytearray(12)
 		self.readfully(meta, len(meta))
-
 		msgty = meta[0:4]
-		hex = meta[4:]
-		msglen = int(hex, 16)
+		msglen = int(meta[4:], 16)
 		msg = KiteMessage(msgty, msglen)
 		self.readfully(msg.buffer, msglen)
+		return msg
 
 
 if __name__ == '__main__':
@@ -99,7 +100,7 @@ if __name__ == '__main__':
 	meta = KiteMessage.KIT1 + hex.encode(encoding = 'UTF-8')
 	print(meta)
 	msgty = meta[0:4]
-	msgsz = int(meta[4:], 16)
+	msgsz = int(bytearray(meta[4:]), 16)
 
 	print(msgty)
 	print(msgsz)
