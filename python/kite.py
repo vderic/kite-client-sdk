@@ -193,7 +193,6 @@ class KiteClient:
 	
 
 	def read(self, ss, mask):
-		print("read callback")
 		msg = None
 		msg = ss.recv()
 		print("type= ", msg.msgty, " , len=", msg.msglen)
@@ -230,8 +229,7 @@ class KiteClient:
 			n = i % len(self.hosts)
 			sock = self.connect(self.hosts[n])
 			if sock is None:
-				print('could not open socket')
-				sys.exit(1)
+				raise Exception("could not open socket")
 			ss = client.SockStream(sock)
 			self.sockstreams.append(ss)
 	

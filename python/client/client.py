@@ -56,7 +56,7 @@ class SockStream:
 
 		while p < msgsz:
 			n = self.socket.recv_into(memoryview(msg)[p:], msglen)
-			print(n, " readed", msg)
+			#print("read = ", n, " msgsz =", msgsz, "\nmsg = ", msg)
 			if n <= 0:
 				raise Exception("scoket unexpected EOF")
 
@@ -85,7 +85,8 @@ class SockStream:
 		msgty = meta[0:4]
 		msglen = int(meta[4:], 16)
 		msg = KiteMessage(msgty, msglen)
-		self.readfully(msg.buffer, msglen)
+		if msglen > 0:
+			self.readfully(msg.buffer, msglen)
 		return msg
 
 
