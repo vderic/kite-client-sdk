@@ -184,7 +184,7 @@ class KiteClient:
 		try:
 			print(addr)
 			sock.connect(addr)
-			#sock.setblocking(False)
+			sock.setblocking(False)
 		except OSError as msg:
 			print(msg)
 			sock.close()
@@ -247,10 +247,23 @@ class KiteClient:
 	
 	
 	def get_next(self):
-		events = self.selectors.select(None)
-		for key, mask in events:
-			callback = key.data
-			return callback(key.fileobj, mask)
+
+		while True:
+			if len(self.sockstreams) == 0:
+				print("no more events")
+				return None
+				
+			events = self.selectors.select(None)
+
+			for key, mask in events:
+				callback = key.data
+				msg = callback(key.fileobj, mask)
+				if msg is None:
+					self.selectors.unregister(key.fileobj)
+					key.fileobj.close()
+					self.sockstreams.remove(key.fileobj)
+
+			# check the stack for any vector found and return
 
 
 	def close(self):
@@ -273,6 +286,7 @@ if __name__ == "__main__":
 			msg = kite.get_next()
 			if msg is None:
 				break
+				
 				
 	except OSError as msg:
 		print(msg)
