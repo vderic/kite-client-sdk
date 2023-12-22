@@ -320,8 +320,8 @@ if __name__ == "__main__":
 
 				print(len(df3))
 
-				df3.drop(index=df.index[3:], inplace=True)
-				print(df3)
+				nbest = df3.head(3)
+				print(nbest)
 				#print(type(row.dtypes))
 
 				
