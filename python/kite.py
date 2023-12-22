@@ -3,6 +3,9 @@ import copy
 import selectors
 import socket
 import sys
+import numpy as np
+import pandas as pd
+
 from client import client
 from xrg import xrg
 
@@ -179,7 +182,7 @@ class KiteClient:
 		#print(addr)
 		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		sock.connect(addr)
-		sock.setblocking(False)
+		#sock.setblocking(False)
 		return sock
 	
 
@@ -269,7 +272,10 @@ class KiteClient:
 					self.sockstreams.remove(key.fileobj)
 				else:
 					# push to the list
-					self.rows.append(row)
+					arr = [v.values for v in row]
+					#print(arr)
+					df = pd.DataFrame(arr).transpose()
+					self.rows.append(df)
 
 		# check the stack for any vector found and return
 		#print("try to get one row and return")
@@ -290,26 +296,43 @@ class KiteClient:
 if __name__ == "__main__":
 
 	new_schema = [('id', 'int64'), ('embedding', 'float[]', 0, 0)]
-	sql = 'select * from "tmp/vector/vector*.csv"'
+	sql = '''select id, embedding <#> '{9,3,5}' from "tmp/vector/vector*.csv"'''
 	hosts = ["localhost:7878"]
+
+	columns = [c[0] for c in new_schema]
 
 	kite = KiteClient()
 	try:
 		kite.host(hosts).sql(sql).schema(new_schema).filespec(CsvFileSpec()).fragment(-1, 2).submit()
 
 		while True:
-			row = kite.get_next()
-			if row is None:
+			df = kite.get_next()
+			if df is None:
 				break
 			else:
-				print("one row recv: ", row)
+				print(df)
+				df.sort_values(by=df.columns[1], ascending=False, inplace=True)
+				df2 = df.sort_values(by=df.columns[1], ascending=False)
+
+				df3 = pd.concat([df, df2])
+				df3.sort_values(by=df.columns[1], ascending=False, inplace=True)
+				print(df3)
+
+				print(len(df3))
+
+				df3.drop(index=df.index[3:], inplace=True)
+				print(df3)
+				#print(type(row.dtypes))
+
 				
 	except OSError as msg:
 		print(msg)
+	finally:
+		print("END")
+		kite.close()
 
-	print("END")
+
 	
-	kite.close()
 	
 
 

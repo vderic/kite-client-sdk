@@ -289,7 +289,7 @@ class Vector:
 						arr.append(self.data[pos:pos+sz].decode('utf-8'))
 					elif self.header.ltyp == LogicalTypes.ARRAY:
 						#a = ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale)
-						arr.append(ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale))
+						arr.append(ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale).values)
 					else:
 						arr.append(self.data[pos:pos+sz])
 					pos += sz
@@ -297,6 +297,10 @@ class Vector:
 			case _:
 				raise ValueError("invalid data type")
 				
+		for i in range(len(self.flag)):
+			if self.flag[i] != 0:
+				self.values[i] = None
+			
 		
 	def is_compressed(self):
 		return self.header.zbyte != self.header.nbyte
