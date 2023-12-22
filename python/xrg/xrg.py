@@ -144,7 +144,7 @@ class ArrayType:
 			else:
 				arr.append(np.frombuffer(bytes, dtype=dtype, count=1, offset=pos)[0])
 				pos += itemsz
-		self.values = arr
+		self.values = np.array(arr, dtype=dtype)
 
 	def read_string_array(self, bytes, nitem, pos):
 		if self.header.ltyp != LogicalTypes.STRING:
