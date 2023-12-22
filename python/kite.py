@@ -305,22 +305,29 @@ if __name__ == "__main__":
 	try:
 		kite.host(hosts).sql(sql).schema(new_schema).filespec(CsvFileSpec()).fragment(-1, 2).submit()
 
+		print("run SQL: ", sql)
+
 		while True:
 			df = kite.get_next()
 			if df is None:
 				break
 			else:
+				print("Result")
 				print(df)
 				df.sort_values(by=df.columns[1], ascending=False, inplace=True)
 				df2 = df.sort_values(by=df.columns[1], ascending=False)
 
-				df3 = pd.concat([df, df2])
-				df3.sort_values(by=df.columns[1], ascending=False, inplace=True)
-				print(df3)
+				print("Sort By Simliary Score")
+				print(df2)
 
-				print(len(df3))
+				#df3 = pd.concat([df, df2])
+				#df3.sort_values(by=df.columns[1], ascending=False, inplace=True)
+				#print(df3)
 
-				nbest = df3.head(3)
+	
+				
+				print("NBest 3")
+				nbest = df2.head(3)
 				print(nbest)
 				#print(type(row.dtypes))
 
