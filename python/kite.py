@@ -140,7 +140,7 @@ class KiteClient:
 	selectors = selectors.DefaultSelector()
 	sockstreams = []
 
-	rows = []
+	batches = []
 
 	def __init__(self):
 		self.req = Request()
@@ -248,10 +248,10 @@ class KiteClient:
 			ss.send(client.KiteMessage.JSON, r.toJSON().encode('utf-8'))
 	
 	
-	def get_next(self):
+	def next_batch(self):
 
-		if len(self.rows) != 0:
-			return self.rows.pop()
+		if len(self.batches) != 0:
+			return self.batches.pop()
 
 		while True:
 			if len(self.sockstreams) == 0:
@@ -273,14 +273,14 @@ class KiteClient:
 				else:
 					# push to the list
 					res = [v.values for v in row]
-					self.rows.append(res)
+					self.batches.append(res)
 
 		# check the stack for any vector found and return
 		#print("try to get one row and return")
-		if len(self.rows) == 0:
+		if len(self.batches) == 0:
 			return None
 		
-		return self.rows.pop()
+		return self.batches.pop()
 			
 
 
@@ -306,12 +306,12 @@ if __name__ == "__main__":
 		print("run SQL: ", sql)
 
 		while True:
-			row = kite.get_next()
-			if row is None:
+			batch = kite.next_batch()
+			if batch is None:
 				break
 			else:
 				#print(arr)
-				df = pd.DataFrame(row).transpose()
+				df = pd.DataFrame(batch).transpose()
 				print("Result")
 				print(df)
 				df.sort_values(by=df.columns[1], ascending=False, inplace=True)
