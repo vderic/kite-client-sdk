@@ -65,7 +65,7 @@ class SockStream:
 				msglen -= n
 				continue
 
-		print("recv", msg)
+		#print("recv", msg)
 
 	def send(self, msgty, msg):
 		msgsz = 0

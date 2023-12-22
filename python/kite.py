@@ -137,6 +137,8 @@ class KiteClient:
 	selectors = selectors.DefaultSelector()
 	sockstreams = []
 
+	rows = []
+
 	def __init__(self):
 		self.req = Request()
 
@@ -174,25 +176,10 @@ class KiteClient:
 		self.req.print()
 		
 	def connect(self, addr):
-		sock = None
-		try:
-			sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		except OSError as msg:
-			print(msg)
-			sock = None
-			return sock
-	
-		try:
-			print(addr)
-			sock.connect(addr)
-			sock.setblocking(False)
-		except OSError as msg:
-			print(msg)
-			try:
-				sock.close()
-			except OSError as msg:
-				print(msg)
-			sock = None
+		#print(addr)
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		sock.connect(addr)
+		sock.setblocking(False)
 		return sock
 	
 
@@ -201,7 +188,7 @@ class KiteClient:
 
 		while True:
 			msg = ss.recv()
-			print("type= ", msg.msgty, " , len=", msg.msglen)
+			#print("type= ", msg.msgty, " , len=", msg.msglen)
 			if msg.msgty == client.KiteMessage.BYE:
 				return None
 			elif msg.msgty == client.KiteMessage.ERROR:
@@ -212,10 +199,11 @@ class KiteClient:
 				else:
 					vec = xrg.Vector(msg.buffer)
 					row.append(vec)
-					print(vec.values)
+					# print(vec.values)
 			else:
 				raise Exception("Invalid Kite message type")
 
+		#print("read ncol ", len(row))
 		return row
 
 	def submit(self):
@@ -234,9 +222,8 @@ class KiteClient:
 			self.req.fragment(self.fragid, self.fragcnt)
 			requests.append(self.req)
 	
-
-		for r in requests:
-			print(r.toJSON())
+		#for r in requests:
+		#	print(r.toJSON())
 
 		# connect to server
 		for i in range(len(requests)):
@@ -260,10 +247,12 @@ class KiteClient:
 	
 	def get_next(self):
 
+		if len(self.rows) != 0:
+			return self.rows.pop()
+
 		while True:
 			if len(self.sockstreams) == 0:
-				print("no more events")
-				return None
+				break
 				
 			events = self.selectors.select(None)
 
@@ -280,10 +269,14 @@ class KiteClient:
 					self.sockstreams.remove(key.fileobj)
 				else:
 					# push to the list
-					print('push one row to the list')
+					self.rows.append(row)
 
 		# check the stack for any vector found and return
-		print("try to get one row and return")
+		#print("try to get one row and return")
+		if len(self.rows) == 0:
+			return None
+		
+		return self.rows.pop()
 			
 
 
@@ -305,14 +298,16 @@ if __name__ == "__main__":
 		kite.host(hosts).sql(sql).schema(new_schema).filespec(CsvFileSpec()).fragment(-1, 2).submit()
 
 		while True:
-			msg = kite.get_next()
-			if msg is None:
+			row = kite.get_next()
+			if row is None:
 				break
-				
+			else:
+				print("one row recv: ", row)
 				
 	except OSError as msg:
 		print(msg)
 
+	print("END")
 	
 	kite.close()
 	
