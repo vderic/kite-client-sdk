@@ -272,10 +272,8 @@ class KiteClient:
 					self.sockstreams.remove(key.fileobj)
 				else:
 					# push to the list
-					arr = [v.values for v in row]
-					#print(arr)
-					df = pd.DataFrame(arr).transpose()
-					self.rows.append(df)
+					res = [v.values for v in row]
+					self.rows.append(res)
 
 		# check the stack for any vector found and return
 		#print("try to get one row and return")
@@ -308,10 +306,12 @@ if __name__ == "__main__":
 		print("run SQL: ", sql)
 
 		while True:
-			df = kite.get_next()
-			if df is None:
+			row = kite.get_next()
+			if row is None:
 				break
 			else:
+				#print(arr)
+				df = pd.DataFrame(row).transpose()
 				print("Result")
 				print(df)
 				df.sort_values(by=df.columns[1], ascending=False, inplace=True)
