@@ -76,24 +76,22 @@ class Request:
 	def schema2json(self):
 		array = []
 
-		lines = self._schema.split('\n')
-		for l in lines:
-			column = l.split(':', 4)
+		for column in self._schema:
 			if len(column) != 2 and len(column) != 4:
 				raise Exception("schema format error")
 
 			cname = column[0]
 			ty = column[1]
 		
-			# TODO: check type name
+			# check type name
 			if ty not in xrg.LogicalTypes.TYPES:
 				raise ValueError("input type is invalid. type = " + ty)
 
 			if ty == 'decimal' or ty == 'decimal[]':
 				if len(column) != 4:
 					raise Exception("schema format error. decimal needs name, type, precision and scale")
-				precision = int(column[2])
-				scale = int(column[3])
+				precision = column[2]
+				scale = column[3]
 
 				array.append({"name": cname, "type": ty, "precision": precision, "scale": scale})
 			else:
@@ -297,13 +295,14 @@ class KiteClient:
 		
 		
 if __name__ == "__main__":
-	schema = 'id:int64:0:0\nembedding:float[]:0:0'
+
+	new_schema = [('id', 'int64'), ('embedding', 'float[]', 0, 0)]
 	sql = 'select * from "tmp/vector/vector*.csv"'
 	hosts = ["localhost:7878"]
 
 	kite = KiteClient()
 	try:
-		kite.host(hosts).sql(sql).schema(schema).filespec(CsvFileSpec()).fragment(-1, 2).submit()
+		kite.host(hosts).sql(sql).schema(new_schema).filespec(CsvFileSpec()).fragment(-1, 2).submit()
 
 		while True:
 			msg = kite.get_next()
