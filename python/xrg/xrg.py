@@ -46,7 +46,7 @@ class PhysicalTypes:
 	
 	
 @dataclass
-class AraryHeader:
+class ArrayHeader:
 	length: int
 	ndim: int
 	dataoffset: int
@@ -77,16 +77,20 @@ class ArrayType:
 
 	dims = None
 	lbs = None
-	list = None
+	values = None
+	bitmap = None
+
+	def __str__(self):
+		return " ".join(str(x) for x in self.values)
 
 	def __init__(self, bytes, precision, scale):
 		self.precision = precision
 		self.scale = scale
-		self.header = ArrayHeader.read(buf[0:XRG_ARRAY_HEADER_SIZE])
+		self.header = ArrayHeader.read(bytes[0:XRG_ARRAY_HEADER_SIZE])
 
 		ndim = self.header.ndim
 		if ndim == 0:
-			list = []
+			values = []
 			return
 
 		if ndim != 1:
@@ -95,7 +99,7 @@ class ArrayType:
 		pos = XRG_ARRAY_HEADER_SIZE
 		dims = np.frombuffer(bytes, dtype=np.int32, count=ndim, offset=pos)
 		pos += ndim * 4
-		dims = np.frombuffer(bytes, dtype=np.int32, count=ndim, offset=pos)
+		lbs = np.frombuffer(bytes, dtype=np.int32, count=ndim, offset=pos)
 		pos += ndim * 4
 			
 		nitems = self.get_nitems(ndim, dims)
@@ -107,27 +111,73 @@ class ArrayType:
 			hdrsz = self.getOverHeadNoNulls(ndim)
 		else:
 			bitmapsz = (nitems + 7) / 8
-			bitmap = bytes[pos:pos+bitmapsz]
+			self.bitmap = bytes[pos:pos+bitmapsz]
 			hdrsz = self.getOverHeadWithNulls(ndim, nitems)
 
 		# skip to the end of header
 		pos = hdrsz
 		# read 1-D array data
+		match self.header.ptyp:
+			case PhysicalTypes.INT8:
+				self.read_array(bytes, np.int8, nitems, pos, 1)
+			case PhysicalTypes.INT16:
+				self.read_array(bytes, np.int16, nitems, pos, 2)
+			case PhysicalTypes.INT32:
+				self.read_array(bytes, np.int32, nitems, pos, 4)
+			case PhysicalTypes.INT64:
+				self.read_array(bytes, np.int64, nitems, pos, 8)
+			case PhysicalTypes.FP32:
+				self.read_array(bytes, np.float32, nitems, pos, 4)
+			case PhysicalTypes.FP64:
+				self.read_array(bytes, np.float64, nitems, pos, 8)
+			case PhysicalTypes.BYTEA:
+				self.read_string_array(bytes, nitems, pos)
+			case _:
+				raise ValueError("invalid array data")
+				
+
+	def read_array(self, bytes, dtype, nitems, pos, itemsz):
+		arr = []
+		for i in range(nitems):
+			if self.isnull(i):
+				arr.append(None)
+			else:
+				arr.append(np.frombuffer(bytes, dtype=dtype, count=1, offset=pos)[0])
+				pos += itemsz
+		self.values = arr
+
+	def read_string_array(self, bytes, nitem, pos):
+		if self.header.ltyp != LogicalTypes.STRING:
+			raise ValueError("bytea is not string")
+
+		arr = []
+		for i in range(nitems):
+			if self.isnull(i):
+				arr.append(None)
+			else:
+				sz = np.frombuffer(bytes, dtype=np.int32, count=1, offset=pos)[0]
+				pos += 4
+				if sz == 0:
+					array.append("")
+				else:
+					arr.append(bytes[pos:pos+sz].encode('utf-8'))
+					pos += sz
+		self.values = arr
 
 	def get_nitems(self, ndim, dims):
-		return 0 if ndims == 0 else dims[0]
+		return 0 if ndim == 0 else dims[0]
 
-	def getOverHeadNoNUlls(ndim):
+	def getOverHeadNoNulls(self, ndim):
 		return xrg_align(8, XRG_ARRAY_HEADER_SIZE + 2 * 4 * ndim)
 
-	def getOverHeadWithNulls(ndim, nitems):
+	def getOverHeadWithNulls(self, ndim, nitems):
 		return xrg_align(8, XRG_ARRAY_HEADER_SIZE + 2 * 4 * ndim + ((nitems + 7) / 8))
 
-	def isnull(offset):
-		if bitmap is None:
+	def isnull(self, offset):
+		if self.bitmap is None:
 			return False
 
-		if bitmap[offset / 8] & (1 << (offset % 8)) != 0:
+		if self.bitmap[offset / 8] & (1 << (offset % 8)) != 0:
 			return False
 
 		return True
@@ -213,14 +263,39 @@ class Vector:
 				self.values = np.frombuffer(self.data, np.int32, count=nitem)
 			case PhysicalTypes.INT64:
 				self.values = np.frombuffer(self.data, np.int64, count=nitem)
+			case PhysicalTypes.INT128:
+				array = []
+				pos = 0 
+				offset = 0
+				for i in range(nitem):
+					array.append(self.data[pos:pos+16])
+					pos += 16
+				self.values = array
 			case PhysicalTypes.FP32:
-				self.values = np.frombuffer(self.data, np.float, count=nitem)
+				self.values = np.frombuffer(self.data, np.float32, count=nitem)
 			case PhysicalTypes.FP64:
-				self.values = np.frombuffer(self.data, np.double, count=nitem)
+				self.values = np.frombuffer(self.data, np.float64, count=nitem)
 			case PhysicalTypes.BYTEA:
-				self.values = None
+				arr = []
+				pos = 0
+				for i in range(nitem):
+					sz = np.frombuffer(self.data, np.int32, count=1, offset=pos)[0]
+					pos += 4
+					if sz == 0:
+						array.append(None)
+						continue
+
+					if self.header.ltyp == LogicalTypes.STRING:
+						arr.append(self.data[pos:pos+sz].encode('utf-8'))
+					elif self.header.ltyp == LogicalTypes.ARRAY:
+						#a = ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale)
+						arr.append(ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale))
+					else:
+						arr.append(self.data[pos:pos+sz])
+					pos += sz
+				self.values = arr
 			case _:
-				self.values = None
+				raise ValueError("invalid data type")
 				
 		
 	def is_compressed(self):
@@ -231,6 +306,8 @@ if __name__ == "__main__":
 
 	data = b'XRG1\x04\x00\x01\x00\x00\x00\x08\x00\x00\x00\x00\x00(\x00\x00\x00(\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
+	arr = b'XRG1\x08\x00\x08\x00\x01\x00\xff\xff\x00\x00\x00\x00\xc8\x00\x00\x00\xc8\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00$\x00\x00\x00$\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x06\x00\x01\x00\x03\x00\x00\x00\x01\x00\x00\x00\x00\x00\x80?\x00\x00\x00@\x00\x00@@$\x00\x00\x00$\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x06\x00\x01\x00\x03\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00@\x00\x00@@\x00\x00\x80@$\x00\x00\x00$\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x06\x00\x01\x00\x03\x00\x00\x00\x01\x00\x00\x00\x00\x00\x80@\x00\x00\xa0@\x00\x00\xc0@$\x00\x00\x00$\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x06\x00\x01\x00\x03\x00\x00\x00\x01\x00\x00\x00\x00\x00\x80?\x00\x00\x80@\x00\x00@@$\x00\x00\x00$\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x06\x00\x01\x00\x03\x00\x00\x00\x01\x00\x00\x00\x00\x00\xa0@\x00\x00\xe0@\x00\x00@@\x00\x00\x00\x00\x00\x00\x00\x00'
+
 	#hdr = VectorHeader.read(data)
 	#print(hdr)
 	#hdr = VectorHeader.read(ByteBuffer.wrap(bytearray(data)))
@@ -238,5 +315,10 @@ if __name__ == "__main__":
 	v = Vector(bytearray(data))
 	print(v.header)
 	print(v.values)
+
+	a = Vector(bytearray(arr))
+	print(a.header)
+	for i in a.values:
+		print(i)
 
 
