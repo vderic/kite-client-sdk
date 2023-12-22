@@ -1,6 +1,4 @@
 from dataclasses import dataclass
-#from PyByteBuffer import ByteBuffer
-#from bytebuffer import ByteBuffer
 import lz4.frame
 import numpy as np
 
@@ -20,6 +18,33 @@ class Flag:
 	INVAL = (1 << SHIFT_INVAL)
 	EXCEPT = (1 << SHIFT_EXCEPT)
 
+class LogicalTypes:
+	TYPES = ["int8", "int16", "int32", "int64", "float", "double", "decimal", 
+			"string", "interval", "time", "date", "timestamp",
+			"int8[]", "int16[]", "int32[]", "int64[]", "float[]", "double[]", "decimal[]", 
+			"string[]", "interval[]", "time[]", "date[]", "timestamp[]"]
+	UNKNOWN = 0
+	NONE = 1
+	STRING = 2
+	DECIMAL = 3
+	INTERVAL = 4
+	TIME = 5
+	DATE = 6
+	TIMESTAMP = 7
+	ARRAY = 8
+
+class PhysicalTypes:
+	UNKNOWN = 0
+	INT8 = 1
+	INT16 = 2
+	INT32 = 3
+	INT64 = 4
+	INT128 = 5
+	FP32 = 6
+	FP64 = 7
+	BYTEA = 8
+	
+	
 @dataclass
 class AraryHeader:
 	length: int
@@ -124,52 +149,6 @@ class VectorHeader:
 	nitem: int
 	ninval: int
 
-#	@staticmethod
-#	def read(buf):
-#		bb = ByteBuffer.wrap(buf)
-#		if buf[0:4] != XRG_MAGIC:
-#			raise Exception("Invalid data. XRG MAGIC not match")
-#
-#		bb.get(4)
-#		ptyp = bb.get(2, 'little')
-#		ltyp = bb.get(2, 'little')
-#		fieldidx = bb.get(2, 'little')
-#		itemsz = bb.get(2, 'little')
-#		scale = bb.get(2, 'little')
-#		precision = bb.get(2, 'little')
-#		nbyte = bb.get(4, 'little')
-#		zbyte = bb.get(4, 'little')
-#		nnull = bb.get(4, 'little')
-#		nitem = bb.get(4, 'little')
-#		ninval = bb.get(4, 'little')
-#		bb.get(4)
-#		bb.get(8)
-#
-#		return VectorHeader(ptyp, ltyp, fieldidx, itemsz, scale, precision, nbyte, zbyte, nnull, nitem, ninval)
-			
-#	@staticmethod
-#	def readX(bytes):
-#		buf = ByteBuffer.wrap(bytes)
-#		magic = buf.get_bytes(4)
-#		if magic != XRG_MAGIC:
-#			raise ValueError('Invalid XRG_MAGIC')
-#
-#		ptyp = buf.get_SLInt16()
-#		ltyp = buf.get_SLInt16()
-#		fieldidx = buf.get_SLInt16()
-#		itemsz = buf.get_SLInt16()
-#		scale = buf.get_SLInt16()
-#		precision = buf.get_SLInt16()
-#		nbyte = buf.get_SLInt32()
-#		zbyte = buf.get_SLInt32()
-#		nnull = buf.get_SLInt32()
-#		nitem = buf.get_SLInt32()
-#		ninval = buf.get_SLInt32()
-#		buf.get_bytes(4)
-#		buf.get_bytes(8)
-#
-#		return VectorHeader(ptyp, ltyp, fieldidx, itemsz, scale, precision, nbyte, zbyte, nnull, nitem, ninval)
-
 	@staticmethod
 	def read(bytes):
 		magic = bytes[0:4]
@@ -209,6 +188,7 @@ class Vector:
 	header = None
 	data = None
 	flag = None
+	values = None
 
 	def __init__(self, buf):
 		self.header = VectorHeader.read(buf[0:XRG_HEADER_SIZE])
@@ -224,6 +204,24 @@ class Vector:
 
 		self.flag = buf[XRG_HEADER_SIZE+zbyte::XRG_HEADER_SIZE+zbyte+nitem]
 
+		match self.header.ptyp:
+			case PhysicalTypes.INT8:
+				self.values = np.frombuffer(self.data, np.int8, count=nitem)
+			case PhysicalTypes.INT16:
+				self.values = np.frombuffer(self.data, np.int16, count=nitem)
+			case PhysicalTypes.INT32:
+				self.values = np.frombuffer(self.data, np.int32, count=nitem)
+			case PhysicalTypes.INT64:
+				self.values = np.frombuffer(self.data, np.int64, count=nitem)
+			case PhysicalTypes.FP32:
+				self.values = np.frombuffer(self.data, np.float, count=nitem)
+			case PhysicalTypes.FP64:
+				self.values = np.frombuffer(self.data, np.double, count=nitem)
+			case PhysicalTypes.BYTEA:
+				self.values = None
+			case _:
+				self.values = None
+				
 		
 	def is_compressed(self):
 		return self.header.zbyte != self.header.nbyte
@@ -239,11 +237,6 @@ if __name__ == "__main__":
 
 	v = Vector(bytearray(data))
 	print(v.header)
+	print(v.values)
 
-	print(Flag.NULL)
-	print(Flag.INVAL)
-	print(Flag.EXCEPT)
-
-	a = np.array([1,2,3])
-	print(a)
 
