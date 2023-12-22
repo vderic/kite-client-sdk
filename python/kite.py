@@ -4,6 +4,7 @@ import selectors
 import socket
 import sys
 from client import client
+from xrg import xrg
 
 class FileSpec:
 	fmt = None
@@ -85,6 +86,8 @@ class Request:
 			ty = column[1]
 		
 			# TODO: check type name
+			if ty not in xrg.LogicalTypes.TYPES:
+				raise ValueError("input type is invalid. type = " + ty)
 
 			if ty == 'decimal' or ty == 'decimal[]':
 				if len(column) != 4:
@@ -187,22 +190,35 @@ class KiteClient:
 			sock.setblocking(False)
 		except OSError as msg:
 			print(msg)
-			sock.close()
+			try:
+				sock.close()
+			except OSError as msg:
+				print(msg)
 			sock = None
 		return sock
 	
 
 	def read(self, ss, mask):
-		msg = None
-		msg = ss.recv()
-		print("type= ", msg.msgty, " , len=", msg.msglen)
+		row = []
 
-		if msg.msgty == b'BYE_':
-			print("BYE BYE")
-			ss.close()
-			return None
+		while True:
+			msg = ss.recv()
+			print("type= ", msg.msgty, " , len=", msg.msglen)
+			if msg.msgty == client.KiteMessage.BYE:
+				return None
+			elif msg.msgty == client.KiteMessage.ERROR:
+				raise Exception(msg.buffer[0:msg.msglen].decode('utf-8'))
+			elif msg.msgty == client.KiteMessage.VECTOR:
+				if msg.msglen == 0:
+					break
+				else:
+					vec = xrg.Vector(msg.buffer)
+					row.append(vec)
+					print(vec.values)
+			else:
+				raise Exception("Invalid Kite message type")
 
-		return msg
+		return row
 
 	def submit(self):
 
@@ -255,13 +271,22 @@ class KiteClient:
 
 			for key, mask in events:
 				callback = key.data
-				msg = callback(key.fileobj, mask)
-				if msg is None:
+				row = callback(key.fileobj, mask)
+				if row is None:
 					self.selectors.unregister(key.fileobj)
-					key.fileobj.close()
-					self.sockstreams.remove(key.fileobj)
+					try:
+						key.fileobj.close()
+					except OSError as msg:
+						print(msg)
 
-			# check the stack for any vector found and return
+					self.sockstreams.remove(key.fileobj)
+				else:
+					# push to the list
+					print('push one row to the list')
+
+		# check the stack for any vector found and return
+		print("try to get one row and return")
+			
 
 
 	def close(self):

@@ -8,7 +8,7 @@ class KiteMessage:
 	
 	KIT1   = b'KIT1'
 	JSON   = b'JSON'
-	BYE    = b'BYT_'
+	BYE    = b'BYE_'
 	ERROR  = b'ERR_'
 	VECTOR = b'VEC_'
 

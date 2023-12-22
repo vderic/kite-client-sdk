@@ -160,7 +160,7 @@ class ArrayType:
 				if sz == 0:
 					array.append("")
 				else:
-					arr.append(bytes[pos:pos+sz].encode('utf-8'))
+					arr.append(bytes[pos:pos+sz].decode('utf-8'))
 					pos += sz
 		self.values = arr
 
@@ -286,7 +286,7 @@ class Vector:
 						continue
 
 					if self.header.ltyp == LogicalTypes.STRING:
-						arr.append(self.data[pos:pos+sz].encode('utf-8'))
+						arr.append(self.data[pos:pos+sz].decode('utf-8'))
 					elif self.header.ltyp == LogicalTypes.ARRAY:
 						#a = ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale)
 						arr.append(ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale))
