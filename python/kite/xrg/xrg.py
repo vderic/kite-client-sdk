@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import lz4.frame
 import numpy as np
+import pandas as pd
 
 XRG_HEADER_SIZE = 48
 XRG_MAGIC = b'XRG1'
@@ -281,14 +282,15 @@ class Vector:
 				for i in range(nitem):
 					sz = np.frombuffer(self.data, np.int32, count=1, offset=pos)[0]
 					pos += 4
-					if sz == 0:
-						array.append(None)
-						continue
 
 					if self.header.ltyp == LogicalTypes.STRING:
-						arr.append(self.data[pos:pos+sz].decode('utf-8'))
+						if sz == 0:
+							arr.append('')
+						else:
+							arr.append(self.data[pos:pos+sz].decode('utf-8'))
 					elif self.header.ltyp == LogicalTypes.ARRAY:
-						#a = ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale)
+						# return ArrayType instead of array data
+						## arr.append(ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale))
 						arr.append(ArrayType(self.data[pos:pos+sz], self.header.precision, self.header.scale).values)
 					else:
 						arr.append(self.data[pos:pos+sz])
@@ -305,6 +307,44 @@ class Vector:
 	def is_compressed(self):
 		return self.header.zbyte != self.header.nbyte
 
+
+class XrgIterator:
+	page = None
+	curr = 0
+	nitem = 0
+	attrs = None
+
+	values = None
+	flags = None
+
+	value_array = None
+	flag_array = None
+
+	def __init__(self, page):
+		self.page = page
+
+		nvec = len(page)
+		self.attrs = [v.header for v in page]
+		self.value_array = [v.values for v in page]
+		print(self.value_array)
+		self.flag_array = [v.flag for v in page]
+		self.nitem =  self.attrs[0].nitem
+
+	def to_pandas(self):
+
+		# set value to None if flag is not zero
+		for flags, values in zip(self.flag_array, self.value_array):
+			print(values)
+			for i in range(len(flags)):
+				if flags[i] != 0:
+					values[i] = None
+	
+		df = pd.DataFrame(self.value_array).transpose()
+		return df
+		
+
+
+	
 
 if __name__ == "__main__":
 
@@ -324,5 +364,11 @@ if __name__ == "__main__":
 	print(a.header)
 	for i in a.values:
 		print(i)
+
+	print("iterator")
+	iter = XrgIterator([a])
+	df = iter.to_pandas()
+	print(df)
+
 
 

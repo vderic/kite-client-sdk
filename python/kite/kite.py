@@ -261,8 +261,8 @@ class KiteClient:
 
 			for key, mask in events:
 				callback = key.data
-				row = callback(key.fileobj, mask)
-				if row is None:
+				page = callback(key.fileobj, mask)
+				if page is None:
 					self.selectors.unregister(key.fileobj)
 					try:
 						key.fileobj.close()
@@ -272,8 +272,8 @@ class KiteClient:
 					self.sockstreams.remove(key.fileobj)
 				else:
 					# push to the list
-					res = [v.values for v in row]
-					self.batches.append(res)
+					# return XrgIterator
+					self.batches.append(xrg.XrgIterator(page))
 
 		# check the stack for any vector found and return
 		#print("try to get one row and return")
@@ -310,8 +310,7 @@ if __name__ == "__main__":
 			if batch is None:
 				break
 			else:
-				#print(arr)
-				df = pd.DataFrame(batch).transpose()
+				df = batch.to_pandas()
 				print("Result")
 				print(df)
 				df.sort_values(by=df.columns[1], ascending=False, inplace=True)
