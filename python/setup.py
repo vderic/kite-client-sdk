@@ -10,6 +10,6 @@ setup(
     license='Apache License 2.0',
     url='https://github.com/vderic/kite-client-sdk',
     description='Kite Client for Python',
-    packages=[],
+    packages=['kite', 'kite.xrg', 'kite.client'],
     py_modules=['kite'],
 )
