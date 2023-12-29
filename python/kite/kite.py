@@ -290,6 +290,8 @@ class KiteClient:
 			return self.curr.next()
 
 		self.curr = self.next_batch()
+		if self.curr is not None and self.curr.has_next():
+			return self.curr.next()
 		return self.curr
 
 
