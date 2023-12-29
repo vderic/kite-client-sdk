@@ -35,14 +35,13 @@ if __name__ == "__main__":
 			else:
 				print("flag=", iter.flags, ", values=", iter.values)
 				#print(tuple(iter.values))
-				if len(h) < nbest:
+				if len(h) <= nbest:
 					heapq.heappush(h, tuple(iter.values))
 				else:
 					heapq.heapreplace(h, tuple(iter.values))
 
-		print(heapq.heappop(h))
-		print(heapq.heappop(h))
-		print(heapq.heappop(h))
+		for i in range(len(h)):
+			print(heapq.heappop(h))
 
 	except OSError as msg:
 		print(msg)
