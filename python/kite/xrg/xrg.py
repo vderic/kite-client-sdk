@@ -299,9 +299,9 @@ class Vector:
 			case _:
 				raise ValueError("invalid data type")
 				
-		for i in range(len(self.flag)):
-			if self.flag[i] != 0:
-				self.values[i] = None
+		#for i in range(len(self.flag)):
+		#	if self.flag[i] != 0:
+		#		self.values[i] = None
 			
 		
 	def is_compressed(self):
