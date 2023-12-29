@@ -6,8 +6,8 @@ import sys
 import numpy as np
 import pandas as pd
 
-from client import client
-from xrg import xrg
+from kite.client import client
+from kite.xrg import xrg
 
 class FileSpec:
 	fmt = None

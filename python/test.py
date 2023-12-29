@@ -29,8 +29,7 @@ if __name__ == "__main__":
             if batch is None:
                 break
             else:
-                #print(arr)
-                df = pd.DataFrame(batch).transpose()
+                df = batch.to_pandas()
                 print("Result")
                 print(df)
                 df.sort_values(by=df.columns[1], ascending=False, inplace=True)
