@@ -141,6 +141,7 @@ class KiteClient:
 	sockstreams = []
 
 	batches = []
+	curr = None
 
 	def __init__(self):
 		self.req = Request()
@@ -282,6 +283,14 @@ class KiteClient:
 		
 		return self.batches.pop()
 			
+
+	def next_row(self):
+
+		if self.curr is not None and self.curr.has_next():
+			return self.curr.next()
+
+		self.curr = self.next_batch()
+		return self.curr
 
 
 	def close(self):

@@ -253,7 +253,7 @@ class Vector:
 		else:
 			self.data = buf[XRG_HEADER_SIZE:XRG_HEADER_SIZE+nbyte]
 
-		self.flag = buf[XRG_HEADER_SIZE+zbyte::XRG_HEADER_SIZE+zbyte+nitem]
+		self.flag = buf[XRG_HEADER_SIZE+zbyte:XRG_HEADER_SIZE+zbyte+nitem]
 
 		match self.header.ptyp:
 			case PhysicalTypes.INT8:
@@ -326,7 +326,6 @@ class XrgIterator:
 		nvec = len(page)
 		self.attrs = [v.header for v in page]
 		self.value_array = [v.values for v in page]
-		print(self.value_array)
 		self.flag_array = [v.flag for v in page]
 		self.nitem =  self.attrs[0].nitem
 
@@ -342,6 +341,26 @@ class XrgIterator:
 		df = pd.DataFrame(self.value_array).transpose()
 		return df
 		
+	def has_next(self):
+		if self.curr >= self.nitem:
+			return False
+		return True
+		
+	def next(self):
+
+		print("0 curr " , self.curr, "nitem", self.nitem)
+		if not self.has_next():
+			return None
+		print("1 curr " , self.curr, "nitem", self.nitem)
+
+		self.flags = []
+		self.values = []
+		for flags, values in zip(self.flag_array, self.value_array):
+			self.flags.append(flags[self.curr])
+			self.values.append(values[self.curr])
+
+		self.curr += 1
+		return self
 
 
 	
@@ -362,11 +381,23 @@ if __name__ == "__main__":
 
 	a = Vector(bytearray(arr))
 	print(a.header)
+	print(a.flag)
 	for i in a.values:
 		print(i)
 
 	print("iterator")
 	iter = XrgIterator([a])
+	while True:
+		curr = iter.next()
+		if curr is None:
+			break
+			
+		print("values...")
+		print(curr.values)
+		print("flags...")
+		print(curr.flags)
+
+
 	df = iter.to_pandas()
 	print(df)
 
