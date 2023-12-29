@@ -3,6 +3,7 @@ import copy
 import selectors
 import socket
 import sys
+import heapq
 import numpy as np
 import pandas as pd
 
@@ -13,12 +14,15 @@ from kite.client import client
 if __name__ == "__main__":
 
 	new_schema = [('id', 'int64'), ('embedding', 'float[]', 0, 0)]
-	sql = '''select id, embedding <#> '{9,3,5}' from "tmp/vector/vector*.csv"'''
+	sql = '''select embedding <#> '{9,3,5}', id from "tmp/vector/vector*.csv"'''
 	hosts = ["localhost:7878"]
 
 	columns = [c[0] for c in new_schema]
 
 	kitecli = kite.KiteClient()
+
+	h = []
+	nbest = 3
 	try:
 		kitecli.host(hosts).sql(sql).schema(new_schema).filespec(kite.CsvFileSpec()).fragment(-1, 2).submit()
 
@@ -30,6 +34,15 @@ if __name__ == "__main__":
 				break
 			else:
 				print("flag=", iter.flags, ", values=", iter.values)
+				#print(tuple(iter.values))
+				if len(h) < nbest:
+					heapq.heappush(h, tuple(iter.values))
+				else:
+					heapq.heapreplace(h, tuple(iter.values))
+
+		print(heapq.heappop(h))
+		print(heapq.heappop(h))
+		print(heapq.heappop(h))
 
 	except OSError as msg:
 		print(msg)
