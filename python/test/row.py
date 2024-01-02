@@ -13,7 +13,7 @@ from kite.client import client
 
 if __name__ == "__main__":
 
-	new_schema = [('id', 'int64'), ('embedding', 'float[]', 0, 0)]
+	new_schema = [('id', 'int64'), ('docid', 'string'), ('index', 'string'), ('embedding', 'float[]', 0, 0)]
 	sql = '''select embedding <#> '{9,3,5}', id from "tmp/vector/vector*.csv"'''
 	hosts = ["localhost:7878"]
 
