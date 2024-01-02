@@ -80,4 +80,22 @@ Install the package
 % pip3 install .
 ```
 
+For development in Python 3,
+```
+        kitecli = kite.KiteClient()
+        try:
+                kitecli.host(hosts).sql(sql).schema(new_schema).filespec(kite.CsvFileSpec()).fragment(-1, 2).submit()
+
+                while True:
+                        iter = kitecli.next_row()
+                        if iter is None:
+                                break
+                        else:
+                                print("flag=", iter.flags, ", values=", iter.values)
+
+        except OSError as msg:
+                print(msg)
+        finally:
+                kitecli.close()
+```
 
