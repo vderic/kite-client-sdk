@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-import lz4.frame
+import lz4.block
 import numpy as np
 import pandas as pd
 
@@ -249,7 +249,7 @@ class Vector:
 		
 		if self.is_compressed():
 			# LZ4
-			self.data = lz4.frame.decompress(buf[XRG_HEADER_SIZE:XRG_HEADER_SIZE+zbyte])
+			self.data = lz4.block.decompress(buf[XRG_HEADER_SIZE:XRG_HEADER_SIZE+zbyte], uncompressed_size=nbyte)
 		else:
 			self.data = buf[XRG_HEADER_SIZE:XRG_HEADER_SIZE+nbyte]
 
