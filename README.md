@@ -62,5 +62,22 @@ For Java, read the `java/src/main/java/com/vitessedata/kite/sdk/KiteCmd.java` fo
 ```
 
 
+For Python,
+
+Install lz4, pandas, numpy package first,
+
+```
+% pip3 install pandas
+% pip3 install numpy
+% pip3 intall lz4
+```
+
+Install the package
+
+```
+% git clone git@github.com:vderic/kite-client-sdk.git
+% cd kite-client-sdk/python
+% pip3 install .
+```
 
 
