@@ -348,10 +348,8 @@ class XrgIterator:
 		
 	def next(self):
 
-		print("0 curr " , self.curr, "nitem", self.nitem)
 		if not self.has_next():
 			return None
-		print("1 curr " , self.curr, "nitem", self.nitem)
 
 		self.flags = []
 		self.values = []
