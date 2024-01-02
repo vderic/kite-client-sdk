@@ -40,7 +40,7 @@ class CsvFileSpec(FileSpec):
 						 "nullstr": self.nullstr}
 		return fs
 
-class ParquetFileSpce(FileSpec):
+class ParquetFileSpec(FileSpec):
 
 	def __init__(self):
 		super().__init__("parquet")
