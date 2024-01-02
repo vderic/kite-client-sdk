@@ -88,21 +88,3 @@ class SockStream:
 		if msglen > 0:
 			self.readfully(msg.buffer, msglen)
 		return msg
-
-
-if __name__ == '__main__':
-	
-	print("hi")
-	msg = KiteMessage(KiteMessage.KIT1, 10)
-	msg.print()
-
-	msgsz = 1035
-	hex = f"{msgsz:0{8}X}"
-	meta = KiteMessage.KIT1 + hex.encode(encoding = 'UTF-8')
-	print(meta)
-	msgty = meta[0:4]
-	msgsz = int(bytearray(meta[4:]), 16)
-
-	print(msgty)
-	print(msgsz)
-
