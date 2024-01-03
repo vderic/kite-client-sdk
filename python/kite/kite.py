@@ -137,7 +137,7 @@ class KiteClient:
 	fragid = 0
 	fragcnt = 0
 	req = None
-	selectors = selectors.DefaultSelector()
+	selectors = None
 	sockstreams = []
 
 	batches = []
@@ -145,6 +145,7 @@ class KiteClient:
 
 	def __init__(self):
 		self.req = Request()
+		self.selectors = selectors.DefaultSelector()
 
 	def host(self, addresses):
 		for addr in addresses:
