@@ -27,25 +27,24 @@ if __name__ == "__main__":
 			if batch is None:
 				break
 			else:
-				print("before to_pandas")
 				df = batch.to_pandas()
 				print("Result")
 				print(df)
-				print("before sort")
-				df.sort_values(by=df.columns[0], ascending=False, inplace=True)
-				print("before sort 2")
-				df2 = df.sort_values(by=df.columns[0], ascending=False)
+				#print("before sort")
+				#df.sort_values(by=df.columns[0], ascending=False, inplace=True)
+				#print("before sort 2")
+				#df2 = df.sort_values(by=df.columns[0], ascending=False)
 
-				print("Sort By Simliary Score")
-				print(df2)
+				#print("Sort By Simliary Score")
+				#print(df2)
 
 				#df3 = pd.concat([df, df2])
 				#df3.sort_values(by=df.columns[1], ascending=False, inplace=True)
 				#print(df3)
 
-				print("NBest 3")
-				nbest = df2.head(3)
-				print(nbest)
+				#print("NBest 3")
+				#nbest = df2.head(3)
+				#print(nbest)
 				#print(type(row.dtypes))
 
 	except OSError as msg:
