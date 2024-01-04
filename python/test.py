@@ -12,48 +12,44 @@ from kite.xrg import xrg
 
 if __name__ == "__main__":
 
-    new_schema = [('id', 'int64'), ('docid', 'string'), ('index', 'string'), ('embedding', 'float[]')]
-    sql = '''select id, embedding <#> '{9,3,5}' from "tmp/vector/vector*.csv"'''
-    hosts = ["localhost:7878"]
+	new_schema = [('id', 'int64'), ('docid', 'int64'), ('embedding', 'float[]')]
+	sql = '''select id, embedding from "tmp/vector/vector*.parquet"'''
+	hosts = ["localhost:7878"]
 
-    columns = [c[0] for c in new_schema]
+	kitecli = kite.KiteClient()
+	try:
+		kitecli.host(hosts).sql(sql).schema(new_schema).filespec(kite.ParquetFileSpec()).fragment(-1, 3).submit()
 
-    kitecli = kite.KiteClient()
-    try:
-        kitecli.host(hosts).sql(sql).schema(new_schema).filespec(kite.CsvFileSpec()).fragment(-1, 3).submit()
+		print("run SQL: ", sql)
 
-        print("run SQL: ", sql)
+		while True:
+			batch = kitecli.next_batch()
+			if batch is None:
+				break
+			else:
+				print("before to_pandas")
+				df = batch.to_pandas()
+				print("Result")
+				print(df)
+				print("before sort")
+				df.sort_values(by=df.columns[0], ascending=False, inplace=True)
+				print("before sort 2")
+				df2 = df.sort_values(by=df.columns[0], ascending=False)
 
-        while True:
-            batch = kitecli.next_batch()
-            if batch is None:
-                break
-            else:
-                df = batch.to_pandas()
-                print("Result")
-                print(df)
-                df.sort_values(by=df.columns[1], ascending=False, inplace=True)
-                df2 = df.sort_values(by=df.columns[1], ascending=False)
+				print("Sort By Simliary Score")
+				print(df2)
 
-                print("Sort By Simliary Score")
-                print(df2)
+				#df3 = pd.concat([df, df2])
+				#df3.sort_values(by=df.columns[1], ascending=False, inplace=True)
+				#print(df3)
 
-                #df3 = pd.concat([df, df2])
-                #df3.sort_values(by=df.columns[1], ascending=False, inplace=True)
-                #print(df3)
+				print("NBest 3")
+				nbest = df2.head(3)
+				print(nbest)
+				#print(type(row.dtypes))
 
-
-
-                print("NBest 3")
-                nbest = df2.head(3)
-                print(nbest)
-                #print(type(row.dtypes))
-
-
-    except OSError as msg:
-        print(msg)
-    finally:
-        print("END")
-        kitecli.close()
-
-
+	except OSError as msg:
+		print(msg)
+	finally:
+		print("END")
+		kitecli.close()

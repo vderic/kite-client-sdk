@@ -163,7 +163,7 @@ class ArrayType:
 				else:
 					arr.append(bytes[pos:pos+sz].decode('utf-8'))
 					pos += sz
-		self.values = arr
+		self.values = np.array(arr, dtype=object)
 
 	def get_nitems(self, ndim, dims):
 		return 0 if ndim == 0 else dims[0]
@@ -295,7 +295,7 @@ class Vector:
 					else:
 						arr.append(self.data[pos:pos+sz])
 					pos += sz
-				self.values = arr
+				self.values = np.array(arr, dtype=object)
 			case _:
 				raise ValueError("invalid data type")
 				
