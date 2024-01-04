@@ -277,6 +277,9 @@ class KiteClient:
 					# return XrgIterator
 					self.batches.append(xrg.XrgIterator(page))
 
+			if len(self.batches) > 0:
+				return self.batches.pop()
+
 		# check the stack for any vector found and return
 		#print("try to get one row and return")
 		if len(self.batches) == 0:
