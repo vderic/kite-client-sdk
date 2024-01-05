@@ -12,10 +12,6 @@ class KiteMessage:
 	ERROR  = b'ERR_'
 	VECTOR = b'VEC_'
 
-	buffer = None
-	msglen = 0
-	msgty = None
-
 	def __init__(self, msgty, msglen):
 		self.msgty = msgty
 		self.msglen = msglen
@@ -37,8 +33,6 @@ class KiteMessage:
 # SockStream
 class SockStream:
 	"""SockStream"""
-
-	socket = None
 
 	def __init__(self, sock):
 		self.socket = sock

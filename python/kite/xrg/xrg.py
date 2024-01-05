@@ -72,14 +72,6 @@ class ArrayHeader:
 		return hdr
 
 class ArrayType:
-	precision = 0
-	scale = 0
-	header = None
-
-	dims = None
-	lbs = None
-	values = None
-	bitmap = None
 
 	def __str__(self):
 		return " ".join(str(x) for x in self.values)
@@ -88,6 +80,10 @@ class ArrayType:
 		self.precision = precision
 		self.scale = scale
 		self.header = ArrayHeader.read(bytes[0:XRG_ARRAY_HEADER_SIZE])
+		self.dims = None
+		self.lbs = None
+		self.values = None
+		self.bitmap = None
 
 		ndim = self.header.ndim
 		if ndim == 0:
@@ -236,13 +232,11 @@ class VectorHeader:
 
 class Vector:
 
-	header = None
-	data = None
-	flag = None
-	values = None
-
 	def __init__(self, buf):
 		self.header = VectorHeader.read(buf[0:XRG_HEADER_SIZE])
+		self.data = None
+		self.flag = None
+		self.values = None
 		nbyte = self.header.nbyte
 		zbyte = self.header.zbyte
 		nitem = self.header.nitem
@@ -309,19 +303,11 @@ class Vector:
 
 
 class XrgIterator:
-	page = None
-	curr = 0
-	nitem = 0
-	attrs = None
-
-	values = None
-	flags = None
-
-	value_array = None
-	flag_array = None
-
 	def __init__(self, page):
 		self.page = page
+		self.curr = 0
+		self.values = None
+		self.flags = None
 
 		nvec = len(page)
 		self.attrs = [v.header for v in page]

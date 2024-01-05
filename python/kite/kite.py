@@ -10,18 +10,10 @@ from kite.client import client
 from kite.xrg import xrg
 
 class FileSpec:
-	fmt = None
-
 	def __init__(self, fmt):
 		self.fmt = fmt
 
 class CsvFileSpec(FileSpec):
-
-	delim = ','
-	quote = '"'
-	escape = '"'
-	header_line = False
-	nullstr = ""
 
 	def __init__(self, delim = ',', quote = '"',escape = '"', header_line = False, nullstr = ""):
 		super().__init__("csv")
@@ -30,7 +22,6 @@ class CsvFileSpec(FileSpec):
 		self.escape = escape
 		self.header_line = header_line
 		self.nullstr = nullstr
-
 
 	def toJSON(self):
 		fs = {}
@@ -54,14 +45,12 @@ class ParquetFileSpec(FileSpec):
 
 class Request:
 
-	_schema = None
-	_sql = None
-	_fragid = 0
-	_fragcnt = 0
-	_filespec = None
-
 	def __init__(self):
-		return
+		self._schema = None
+		self._sql = None
+		self._fragid = 0
+		self._fragcnt = 0
+		self._filespec = None
 
 	def schema(self, _schema):
 		self._schema = _schema
@@ -132,20 +121,16 @@ class Request:
 
 class KiteClient:
 
-	hosts = []
-	port = 0
-	fragid = 0
-	fragcnt = 0
-	req = None
-	selectors = None
-	sockstreams = []
-
-	batches = []
-	curr = None
-
 	def __init__(self):
 		self.req = Request()
 		self.selectors = selectors.DefaultSelector()
+		self.hosts = []
+		self.port = 0
+		self.fragid = 0
+		self.fragcnt = 0
+		self.sockstreams = []
+		self.batches = []
+		self.curr = None
 
 	def host(self, addresses):
 		for addr in addresses:
