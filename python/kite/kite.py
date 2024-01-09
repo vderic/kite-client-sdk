@@ -14,7 +14,7 @@ class FileSpec:
 		self.fmt = fmt
 
 	@staticmethod
-	def fromJSON(self, fs):
+	def fromJSON(fs):
 		fmt = fs['fmt']
 		if fmt == 'csv':
 			csvspec = fs['csvspec']
@@ -24,8 +24,10 @@ class FileSpec:
 			header_line = (csvspec['header_line'] == 'true')
 			nullstr = csvspec['nullstr']
 			return CsvFileSpec(delim, quote, escape, header_line, nullstr)
-		else:
+		elif fmt == 'parquet':
 			return ParquetFileSpec()
+		else:
+			raise ValueError('filespec invalid format')
 
 class CsvFileSpec(FileSpec):
 
