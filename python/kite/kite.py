@@ -13,6 +13,20 @@ class FileSpec:
 	def __init__(self, fmt):
 		self.fmt = fmt
 
+	@staticmethod
+	def fromJSON(self, fs):
+		fmt = fs['fmt']
+		if fmt == 'csv':
+			csvspec = fs['csvspec']
+			delim = csvspec['delim']
+			quote = csvspec['quote']
+			escape = csvspec['escape']
+			header_line = (csvspec['header_line'] == 'true')
+			nullstr = csvspec['nullstr']
+			return CsvFileSpec(delim, quote, escape, header_line, nullstr)
+		else:
+			return ParquetFileSpec()
+
 class CsvFileSpec(FileSpec):
 
 	def __init__(self, delim = ',', quote = '"',escape = '"', header_line = False, nullstr = ""):
@@ -30,6 +44,8 @@ class CsvFileSpec(FileSpec):
 						 "header_line": ("true" if self.header_line else "false"), 
 						 "nullstr": self.nullstr}
 		return fs
+
+
 
 class ParquetFileSpec(FileSpec):
 
@@ -53,6 +69,7 @@ class Request:
 		self._filespec = None
 
 	def schema(self, _schema):
+		self.validate_schema(_schema)
 		self._schema = _schema
 
 	def sql(self, sql):
@@ -65,31 +82,18 @@ class Request:
 	def filespec(self, fs):
 		self._filespec = fs
 
-	def schema2json(self):
-		array = []
-
-		for column in self._schema:
-			if len(column) != 2 and len(column) != 4:
-				raise Exception("schema format error")
-
-			cname = column[0]
-			ty = column[1]
+	def validate_schema(self, schema):
+		for column in schema:
+			cname = column['name']
+			ty = column['type']
 		
 			# check type name
 			if ty not in xrg.LogicalTypes.TYPES:
 				raise ValueError("input type is invalid. type = " + ty)
 
 			if ty == 'decimal' or ty == 'decimal[]':
-				if len(column) != 4:
+				if column.get('precision') == None or column.get('scale') == None:
 					raise Exception("schema format error. decimal needs name, type, precision and scale")
-				precision = column[2]
-				scale = column[3]
-
-				array.append({"name": cname, "type": ty, "precision": precision, "scale": scale})
-			else:
-				array.append({"name": cname, "type": ty})
-
-		return array
 
 	def toJSON(self):
 		ret = {}
@@ -108,7 +112,7 @@ class Request:
 
 		ret["sql"] = self._sql
 		ret["fragment"] = [self._fragid, self._fragcnt]
-		ret["schema"] = self.schema2json()
+		ret["schema"] = self._schema
 		ret["filespec"] = self._filespec.toJSON()
 
 		return json.dumps(ret)

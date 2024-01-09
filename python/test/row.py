@@ -8,7 +8,9 @@ from kite.client import client
 
 if __name__ == "__main__":
 
-	new_schema = [('id', 'int64'), ('docid', 'int64'), ('embedding', 'float[]', 0, 0)]
+	schema = [{'name':'id', 'type': 'int64'},
+		{'name':'docid', 'type':'int64'},
+		{'name': 'embedding', 'type':'float[]'}]
 	sql = '''select count(*) from "tmp/vector/vector*.parquet"'''
 	hosts = ["localhost:7878"]
 
@@ -16,7 +18,7 @@ if __name__ == "__main__":
 
 	h = []
 	try:
-		kitecli.host(hosts).sql(sql).schema(new_schema).filespec(kite.ParquetFileSpec()).fragment(-1, 2).submit()
+		kitecli.host(hosts).sql(sql).schema(schema).filespec(kite.ParquetFileSpec()).fragment(-1, 2).submit()
 
 		print("run SQL: ", sql)
 
