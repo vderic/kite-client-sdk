@@ -99,3 +99,4 @@ For development in Python 3,
                 kitecli.close()
 ```
 
+For development in Golang, please visit (https://github.com/vderic/kite-client-go)
