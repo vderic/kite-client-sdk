@@ -1,6 +1,6 @@
 # Kite Client SDK
 
-Kite Client SDK allows query the data stored in Kite server.  We provide both C and Java interfaces to connect with Kite.
+Kite Client SDK allows query the data stored in Kite server.  We provide both C, Python, Golang and Java interfaces to connect with Kite.
 
 For C, read the file`c/xcli.c` for usage.
 
