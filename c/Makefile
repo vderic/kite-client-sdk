@@ -4,13 +4,12 @@ CC ?= gcc
 CXX ?= g++
 CFLAGS = -I../ext/include -Wmissing-declarations -Wall -Wextra -MMD -fPIC
 ifeq ($(ARCH), x86_64)
-	ifeq ($(MARCH), )
-		CFLAGS += -march=broadwell
-	else
-		CFLAGS += -march=$(MARCH)
-	endif
+	MARCH ?= broadwell
+	CFLAGS += -march=$(MARCH)
 else ifeq ($(ARCH), aarch64)
 	CFLAGS += -D__ARM_NEON__
+else
+	$(error unsupported arch $(ARCH))
 endif
 
 
